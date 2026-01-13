@@ -61,12 +61,18 @@ export async function buildServer() {
     };
   });
 
-  // TODO: Register route handlers here
-  // await fastify.register(authRoutes, { prefix: '/api/auth' });
-  // await fastify.register(videoRoutes, { prefix: '/api/videos' });
-  // await fastify.register(sightingRoutes, { prefix: '/api/sightings' });
-  // await fastify.register(birdRoutes, { prefix: '/api/birds' });
-  // await fastify.register(statisticsRoutes, { prefix: '/api/statistics' });
+  // Register route handlers
+  const authRoutes = (await import('./routes/auth.routes.js')).default;
+  const videosRoutes = (await import('./routes/videos.routes.js')).default;
+  const sightingsRoutes = (await import('./routes/sightings.routes.js')).default;
+  const birdsRoutes = (await import('./routes/birds.routes.js')).default;
+  const statisticsRoutes = (await import('./routes/statistics.routes.js')).default;
+
+  await fastify.register(authRoutes, { prefix: '/api/auth' });
+  await fastify.register(videosRoutes, { prefix: '/api/videos' });
+  await fastify.register(sightingsRoutes, { prefix: '/api/sightings' });
+  await fastify.register(birdsRoutes, { prefix: '/api/birds' });
+  await fastify.register(statisticsRoutes, { prefix: '/api/statistics' });
 
   return fastify;
 }
