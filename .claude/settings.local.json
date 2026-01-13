@@ -1,12 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(git init:*)",
-      "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial project setup\n\n- Set up monorepo with npm workspaces\n- Create package.json for root, backend, frontend, shared\n- Configure TypeScript with base and per-package configs\n- Add .gitignore\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(npm install)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd backend foundation: config, database, and migrations\n\n- Create configuration modules for environment, database, and OpenAI\n- Implement database connection with better-sqlite3\n- Add initial schema migration with all tables \\(videos, bird_profiles, sightings, etc.\\)\n- Set up migration runner system\n- Create backend folder structure\n- Add .env.example with all required variables\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git commit:*)"
-    ]
+    "requireApproval": false
   }
 }
