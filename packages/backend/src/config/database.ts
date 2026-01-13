@@ -13,10 +13,10 @@ export const databaseConfig = {
 
   // Pragmas for performance optimization
   pragmas: [
-    'PRAGMA journal_mode = WAL', // Write-Ahead Logging for better concurrency
-    'PRAGMA synchronous = NORMAL', // Balanced durability vs performance
-    'PRAGMA cache_size = -64000', // 64MB cache
-    'PRAGMA foreign_keys = ON', // Enable foreign key constraints
-    'PRAGMA busy_timeout = 5000', // Wait up to 5 seconds on locked database
+    'journal_mode = WAL', // Write-Ahead Logging for better concurrency
+    'synchronous = NORMAL', // Balanced durability vs performance
+    'cache_size = -64000', // 64MB cache
+    'foreign_keys = ON', // Enable foreign key constraints
+    'busy_timeout = 5000', // Wait up to 5 seconds on locked database
   ],
 };

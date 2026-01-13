@@ -37,8 +37,10 @@ export const initializeDatabase = (): Database.Database => {
  * Get existing database connection
  */
 export const getDatabase = (): Database.Database => {
+  // Lazily initialize to support repositories/services that are imported
+  // before the application explicitly initializes the database.
   if (!db) {
-    throw new Error('Database not initialized. Call initializeDatabase() first.');
+    return initializeDatabase();
   }
   return db;
 };
