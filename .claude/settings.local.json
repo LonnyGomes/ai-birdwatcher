@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial project setup\n\n- Set up monorepo with npm workspaces\n- Create package.json for root, backend, frontend, shared\n- Configure TypeScript with base and per-package configs\n- Add .gitignore\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}

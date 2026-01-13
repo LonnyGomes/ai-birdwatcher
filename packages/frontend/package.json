@@ -1,0 +1,30 @@
+{
+  "name": "@ai-birdwatcher/frontend",
+  "version": "1.0.0",
+  "description": "Frontend UI for AI Bird Watcher",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "lint": "eslint . --ext .vue,.ts"
+  },
+  "dependencies": {
+    "vue": "^3.4.3",
+    "vue-router": "^4.2.5",
+    "pinia": "^2.1.7",
+    "axios": "^1.6.5",
+    "chart.js": "^4.4.1",
+    "vue-chartjs": "^5.3.0",
+    "date-fns": "^3.0.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.2",
+    "@vue/test-utils": "^2.4.3",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vue-tsc": "^1.8.27",
+    "vitest": "^1.1.0"
+  }
+}
