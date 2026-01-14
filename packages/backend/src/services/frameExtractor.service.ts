@@ -129,13 +129,19 @@ export class FrameExtractorService {
     timestamp: number,
     outputPath: string
   ): Promise<void> {
+    const resolvedOutputPath = path.isAbsolute(outputPath)
+      ? outputPath
+      : path.join(paths.frames, outputPath);
+
+    await ensureDir(path.dirname(resolvedOutputPath));
+
     return new Promise((resolve, reject) => {
       ffmpeg(videoPath)
         .seekInput(timestamp)
         .frames(1)
-        .output(outputPath)
+        .output(resolvedOutputPath)
         .on('end', () => {
-          logger.debug(`Extracted frame at ${timestamp}s to ${outputPath}`);
+          logger.debug(`Extracted frame at ${timestamp}s to ${resolvedOutputPath}`);
           resolve();
         })
         .on('error', (err) => {
