@@ -37,7 +37,7 @@ export class SightingsRepository {
       input.confidence_score,
       input.frame_path,
       input.ai_analysis ?? null,
-      input.is_matched ?? false,
+      input.is_matched ? 1 : 0,
       input.match_confidence ?? null
     );
 
@@ -193,7 +193,7 @@ export class SightingsRepository {
     }
     if (input.is_matched !== undefined) {
       updates.push('is_matched = ?');
-      params.push(input.is_matched);
+      params.push(input.is_matched ? 1 : 0);
     }
     if (input.match_confidence !== undefined) {
       updates.push('match_confidence = ?');

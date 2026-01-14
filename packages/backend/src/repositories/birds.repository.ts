@@ -195,7 +195,7 @@ export class BirdsRepository {
       input.sighting_id,
       input.image_path,
       input.quality_score ?? null,
-      input.is_primary ?? false
+      input.is_primary ? 1 : 0
     );
 
     return this.getRepresentativeImageById(result.lastInsertRowid as number)!;
