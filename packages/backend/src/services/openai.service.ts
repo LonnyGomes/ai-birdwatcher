@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import fs from 'fs/promises';
 import { openaiConfig, prompts } from '../config/openai.js';
 import { createLogger } from '../utils/logger.js';
-import { retryWithCondition } from '../utils/retry.js';
+import { retryWithCondition, sleep } from '../utils/retry.js';
 import { calculateFileHash } from '../utils/imageUtils.js';
 
 const logger = createLogger('OpenAIService');
@@ -30,6 +30,10 @@ interface BirdComparison {
 export class OpenAIService {
   private client: OpenAI;
   private cache: Map<string, any>;
+  private lastRequestTimestamp: number;
+  private throttleQueue: Promise<void>;
+  private tokenUsageWindow: Array<{ timestamp: number; tokens: number }>;
+  private tokenUsageTotal: number;
 
   constructor() {
     this.client = new OpenAI({
@@ -37,6 +41,10 @@ export class OpenAIService {
       timeout: openaiConfig.timeout,
     });
     this.cache = new Map();
+    this.lastRequestTimestamp = 0;
+    this.throttleQueue = Promise.resolve();
+    this.tokenUsageWindow = [];
+    this.tokenUsageTotal = 0;
   }
 
   /**
@@ -63,33 +71,41 @@ export class OpenAIService {
     // Call OpenAI API with retry
     const result = await retryWithCondition(
       async () => {
-        const response = await this.client.chat.completions.create({
-          model: openaiConfig.models.vision,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: prompts.identify },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:image/jpeg;base64,${base64Image}`,
-                    detail: openaiConfig.vision.detail,
+        const releaseTokens = await this.throttleRequests(openaiConfig.vision.maxTokens);
+        try {
+          const response = await this.client.chat.completions.create({
+            model: openaiConfig.models.vision,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompts.identify },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/jpeg;base64,${base64Image}`,
+                      detail: openaiConfig.vision.detail,
+                    },
                   },
-                },
-              ],
-            },
-          ],
-          max_tokens: openaiConfig.vision.maxTokens,
-          response_format: { type: 'json_object' },
-        });
+                ],
+              },
+            ],
+            max_tokens: openaiConfig.vision.maxTokens,
+            response_format: { type: 'json_object' },
+          });
 
-        const content = response.choices[0]?.message?.content;
-        if (!content) {
-          throw new Error('No response content from OpenAI');
+          releaseTokens(response.usage?.total_tokens);
+
+          const content = response.choices[0]?.message?.content;
+          if (!content) {
+            throw new Error('No response content from OpenAI');
+          }
+
+          return JSON.parse(content) as BirdIdentification;
+        } catch (error) {
+          releaseTokens(0);
+          throw error;
         }
-
-        return JSON.parse(content) as BirdIdentification;
       },
       {
         maxRetries: openaiConfig.rateLimit.maxRetries,
@@ -148,42 +164,50 @@ export class OpenAIService {
     // Call OpenAI API with retry
     const result = await retryWithCondition(
       async () => {
-        const response = await this.client.chat.completions.create({
-          model: openaiConfig.models.vision,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: 'Image 1:' },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:image/jpeg;base64,${base64Image1}`,
-                    detail: openaiConfig.vision.detail,
+        const releaseTokens = await this.throttleRequests(openaiConfig.vision.maxTokens);
+        try {
+          const response = await this.client.chat.completions.create({
+            model: openaiConfig.models.vision,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: 'Image 1:' },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/jpeg;base64,${base64Image1}`,
+                      detail: openaiConfig.vision.detail,
+                    },
                   },
-                },
-                { type: 'text', text: 'Image 2:' },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: `data:image/jpeg;base64,${base64Image2}`,
-                    detail: openaiConfig.vision.detail,
+                  { type: 'text', text: 'Image 2:' },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/jpeg;base64,${base64Image2}`,
+                      detail: openaiConfig.vision.detail,
+                    },
                   },
-                },
-                { type: 'text', text: prompts.compare },
-              ],
-            },
-          ],
-          max_tokens: openaiConfig.vision.maxTokens,
-          response_format: { type: 'json_object' },
-        });
+                  { type: 'text', text: prompts.compare },
+                ],
+              },
+            ],
+            max_tokens: openaiConfig.vision.maxTokens,
+            response_format: { type: 'json_object' },
+          });
 
-        const content = response.choices[0]?.message?.content;
-        if (!content) {
-          throw new Error('No response content from OpenAI');
+          releaseTokens(response.usage?.total_tokens);
+
+          const content = response.choices[0]?.message?.content;
+          if (!content) {
+            throw new Error('No response content from OpenAI');
+          }
+
+          return JSON.parse(content) as BirdComparison;
+        } catch (error) {
+          releaseTokens(0);
+          throw error;
         }
-
-        return JSON.parse(content) as BirdComparison;
       },
       {
         maxRetries: openaiConfig.rateLimit.maxRetries,
@@ -239,6 +263,79 @@ export class OpenAIService {
       size: this.cache.size,
       keys: Array.from(this.cache.keys()),
     };
+  }
+
+  /**
+   * Ensure we respect OpenAI rate limits by spacing requests
+   */
+  private async throttleRequests(estimatedTokens = openaiConfig.vision.maxTokens): Promise<(actualTokens?: number) => void> {
+    const minInterval = openaiConfig.rateLimit.minRequestIntervalMs;
+    const tokensPerMinute = openaiConfig.rateLimit.tokensPerMinute;
+    let release: (actualTokens?: number) => void = () => {};
+
+    this.throttleQueue = this.throttleQueue.then(async () => {
+      const now = Date.now();
+
+      if (minInterval) {
+        const elapsed = now - this.lastRequestTimestamp;
+        if (elapsed < minInterval) {
+          await sleep(minInterval - elapsed);
+        }
+        this.lastRequestTimestamp = Date.now();
+      }
+
+      if (!tokensPerMinute) {
+        release = () => {};
+        return;
+      }
+
+      const windowMs = 60000;
+      while (true) {
+        const currentTime = Date.now();
+        this.cleanupTokenUsage(currentTime, windowMs);
+
+        if (this.tokenUsageTotal + estimatedTokens <= tokensPerMinute) {
+          const reservation = { timestamp: currentTime, tokens: estimatedTokens };
+          this.tokenUsageWindow.push(reservation);
+          this.tokenUsageTotal += estimatedTokens;
+
+          let released = false;
+          release = (actualTokens?: number) => {
+            if (released) {
+              return;
+            }
+            released = true;
+            const normalized = typeof actualTokens === 'number' && !Number.isNaN(actualTokens)
+              ? Math.max(actualTokens, 0)
+              : 0;
+            this.tokenUsageTotal += normalized - reservation.tokens;
+            reservation.tokens = normalized;
+          };
+
+          break;
+        }
+
+        const oldest = this.tokenUsageWindow[0];
+        if (!oldest) {
+          await sleep(windowMs);
+        } else {
+          const wait = Math.max(oldest.timestamp + windowMs - currentTime, 50);
+          await sleep(wait);
+        }
+      }
+    });
+
+    await this.throttleQueue;
+    return release;
+  }
+
+  private cleanupTokenUsage(currentTime: number, windowMs: number): void {
+    while (this.tokenUsageWindow.length > 0 && currentTime - this.tokenUsageWindow[0].timestamp >= windowMs) {
+      const expired = this.tokenUsageWindow.shift();
+      if (expired) {
+        this.tokenUsageTotal -= expired.tokens;
+      }
+    }
   }
 }
 

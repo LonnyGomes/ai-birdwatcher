@@ -5,7 +5,7 @@ export const openaiConfig = {
 
   // Model configuration
   models: {
-    vision: 'gpt-4-vision-preview', // For bird identification and comparison
+    vision: 'gpt-4o-mini', // Latest multimodal model for bird identification/comparison
   },
 
   // Rate limiting and retry configuration
@@ -13,6 +13,8 @@ export const openaiConfig = {
     maxRetries: 3,
     retryDelay: 1000, // milliseconds
     backoffMultiplier: 2,
+    minRequestIntervalMs: 1100, // pacing between requests to avoid rate limits
+    tokensPerMinute: 200000, // align with org TPM quota
   },
 
   // Request timeouts

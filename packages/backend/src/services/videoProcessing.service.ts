@@ -111,27 +111,32 @@ export class VideoProcessingService {
         // Get frame timestamps within motion segments
         const timestamps = motionDetectionService.getFrameTimestamps(motionSegments);
 
-        // Extract frames at specific timestamps
-        frames = [];
-        for (let i = 0; i < timestamps.length; i++) {
-          const timestamp = timestamps[i];
-          const framePath = `${video.id}/frame_${String(i + 1).padStart(4, '0')}.jpg`;
+        if (timestamps.length === 0) {
+          logger.warn('Motion detection found no segments; falling back to full frame extraction');
+          frames = await frameExtractorService.extractFrames(video.filepath, video.id);
+        } else {
+          // Extract frames at specific timestamps
+          frames = [];
+          for (let i = 0; i < timestamps.length; i++) {
+            const timestamp = timestamps[i];
+            const framePath = `${video.id}/frame_${String(i + 1).padStart(4, '0')}.jpg`;
 
-          await frameExtractorService.extractFrameAtTimestamp(
-            video.filepath,
-            timestamp,
-            framePath
-          );
+            await frameExtractorService.extractFrameAtTimestamp(
+              video.filepath,
+              timestamp,
+              framePath
+            );
 
-          frames.push({
-            number: i + 1,
-            timestamp,
-            path: framePath,
-          });
+            frames.push({
+              number: i + 1,
+              timestamp,
+              path: framePath,
+            });
 
-          // Update progress
-          const progress = Math.floor(((i + 1) / timestamps.length) * 100);
-          jobQueueService.updateProgress(job.id, progress);
+            // Update progress
+            const progress = Math.floor(((i + 1) / timestamps.length) * 100);
+            jobQueueService.updateProgress(job.id, progress);
+          }
         }
       } else {
         // Extract all frames at 1 fps
@@ -173,8 +178,10 @@ export class VideoProcessingService {
       const fs = await import('fs/promises');
       const path = await import('path');
       const { paths } = await import('../config/environment.js');
+      const { ensureDir } = await import('../utils/imageUtils.js');
 
       const framesDir = path.join(paths.frames, video.id.toString());
+      await ensureDir(framesDir);
       const frameFiles = await fs.readdir(framesDir);
 
       // Filter only JPG files and sort
