@@ -7,6 +7,11 @@ import { calculateFileHash } from '../utils/imageUtils.js';
 
 const logger = createLogger('OpenAIService');
 
+interface BirdDetection {
+  birds_detected: number;
+  confidence: number;
+}
+
 interface BirdIdentification {
   birds_detected: number;
   birds: Array<{
@@ -48,6 +53,91 @@ export class OpenAIService {
   }
 
   /**
+   * Detect if birds are present in an image
+   */
+  async detectBirds(imagePath: string): Promise<BirdDetection> {
+    logger.info(`Detecting birds in image: ${imagePath}`);
+
+    // Check cache
+    if (openaiConfig.caching.enabled) {
+      const cacheKey = await this.getCacheKey(imagePath, 'detect');
+      const cached = this.cache.get(cacheKey);
+
+      if (cached) {
+        logger.debug('Returning cached detection result');
+        return cached;
+      }
+    }
+
+    // Read image and encode to base64
+    const imageBuffer = await fs.readFile(imagePath);
+    const base64Image = imageBuffer.toString('base64');
+
+    // Call OpenAI API with retry
+    const result = await retryWithCondition(
+      async () => {
+        const releaseTokens = await this.throttleRequests(openaiConfig.vision.detect.maxTokens);
+        try {
+          const response = await this.client.chat.completions.create({
+            model: openaiConfig.models.vision,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: prompts.detect },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/jpeg;base64,${base64Image}`,
+                      detail: openaiConfig.vision.detect.detail,
+                    },
+                  },
+                ],
+              },
+            ],
+            max_tokens: openaiConfig.vision.detect.maxTokens,
+            response_format: { type: 'json_object' },
+          });
+
+          releaseTokens(response.usage?.total_tokens);
+
+          const content = response.choices[0]?.message?.content;
+          if (!content) {
+            throw new Error('No response content from OpenAI');
+          }
+
+          return JSON.parse(content) as BirdDetection;
+        } catch (error) {
+          releaseTokens(0);
+          throw error;
+        }
+      },
+      {
+        maxRetries: openaiConfig.rateLimit.maxRetries,
+        retryDelay: openaiConfig.rateLimit.retryDelay,
+        backoffMultiplier: openaiConfig.rateLimit.backoffMultiplier,
+        onRetry: (error, attempt) => {
+          logger.warn(`OpenAI API retry attempt ${attempt}`, { error: error.message });
+        },
+      }
+    );
+
+    // Cache result
+    if (openaiConfig.caching.enabled) {
+      const cacheKey = await this.getCacheKey(imagePath, 'detect');
+      this.cache.set(cacheKey, result);
+
+      // Clear cache after TTL
+      setTimeout(() => {
+        this.cache.delete(cacheKey);
+      }, openaiConfig.caching.ttl);
+    }
+
+    logger.info(`Detection result: ${result.birds_detected} bird(s)`);
+    return result;
+  }
+
+  /**
    * Identify birds in an image
    */
   async identifyBirds(imagePath: string): Promise<BirdIdentification> {
@@ -71,7 +161,7 @@ export class OpenAIService {
     // Call OpenAI API with retry
     const result = await retryWithCondition(
       async () => {
-        const releaseTokens = await this.throttleRequests(openaiConfig.vision.maxTokens);
+        const releaseTokens = await this.throttleRequests(openaiConfig.vision.identify.maxTokens);
         try {
           const response = await this.client.chat.completions.create({
             model: openaiConfig.models.vision,
@@ -84,13 +174,13 @@ export class OpenAIService {
                     type: 'image_url',
                     image_url: {
                       url: `data:image/jpeg;base64,${base64Image}`,
-                      detail: openaiConfig.vision.detail,
+                      detail: openaiConfig.vision.identify.detail,
                     },
                   },
                 ],
               },
             ],
-            max_tokens: openaiConfig.vision.maxTokens,
+            max_tokens: openaiConfig.vision.identify.maxTokens,
             response_format: { type: 'json_object' },
           });
 
@@ -164,7 +254,7 @@ export class OpenAIService {
     // Call OpenAI API with retry
     const result = await retryWithCondition(
       async () => {
-        const releaseTokens = await this.throttleRequests(openaiConfig.vision.maxTokens);
+        const releaseTokens = await this.throttleRequests(openaiConfig.vision.compare.maxTokens);
         try {
           const response = await this.client.chat.completions.create({
             model: openaiConfig.models.vision,
@@ -177,7 +267,7 @@ export class OpenAIService {
                     type: 'image_url',
                     image_url: {
                       url: `data:image/jpeg;base64,${base64Image1}`,
-                      detail: openaiConfig.vision.detail,
+                      detail: openaiConfig.vision.compare.detail,
                     },
                   },
                   { type: 'text', text: 'Image 2:' },
@@ -185,14 +275,14 @@ export class OpenAIService {
                     type: 'image_url',
                     image_url: {
                       url: `data:image/jpeg;base64,${base64Image2}`,
-                      detail: openaiConfig.vision.detail,
+                      detail: openaiConfig.vision.compare.detail,
                     },
                   },
                   { type: 'text', text: prompts.compare },
                 ],
               },
             ],
-            max_tokens: openaiConfig.vision.maxTokens,
+            max_tokens: openaiConfig.vision.compare.maxTokens,
             response_format: { type: 'json_object' },
           });
 
@@ -268,7 +358,7 @@ export class OpenAIService {
   /**
    * Ensure we respect OpenAI rate limits by spacing requests
    */
-  private async throttleRequests(estimatedTokens = openaiConfig.vision.maxTokens): Promise<(actualTokens?: number) => void> {
+  private async throttleRequests(estimatedTokens = openaiConfig.vision.identify.maxTokens): Promise<(actualTokens?: number) => void> {
     const minInterval = openaiConfig.rateLimit.minRequestIntervalMs;
     const tokensPerMinute = openaiConfig.rateLimit.tokensPerMinute;
     let release: (actualTokens?: number) => void = () => {};

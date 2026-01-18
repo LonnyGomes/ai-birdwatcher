@@ -1,7 +1,7 @@
 import { openaiService } from './openai.service.js';
 import { SightingsRepository } from '../repositories/sightings.repository.js';
 import { createLogger } from '../utils/logger.js';
-import { assessImageQuality } from '../utils/imageUtils.js';
+import { assessImageQuality, calculateImageHash, hammingDistance } from '../utils/imageUtils.js';
 import type { CreateSightingInput } from '@ai-birdwatcher/shared';
 
 const logger = createLogger('BirdIdentificationService');
@@ -11,6 +11,10 @@ export interface IdentificationResult {
   species: string;
   confidence: number;
   birdsDetected: number;
+}
+
+interface FrameFilterState {
+  lastHash: string | null;
 }
 
 export class BirdIdentificationService {
@@ -96,9 +100,22 @@ export class BirdIdentificationService {
     logger.info(`Starting batch identification for ${frames.length} frames from video ${videoId}`);
 
     const allResults: IdentificationResult[] = [];
+    const filterState: FrameFilterState = { lastHash: null };
 
     for (const frame of frames) {
       try {
+        const shouldSkip = await this.shouldSkipFrame(frame.path, filterState);
+        if (shouldSkip) {
+          logger.debug(`Skipping frame ${frame.number} due to low quality or duplication`);
+          continue;
+        }
+
+        const detection = await openaiService.detectBirds(frame.path);
+        if (detection.birds_detected === 0) {
+          logger.debug(`No birds detected in frame ${frame.number}`);
+          continue;
+        }
+
         const results = await this.identifyBirdsInFrame(
           videoId,
           frame.path,
@@ -117,6 +134,31 @@ export class BirdIdentificationService {
     logger.info(`Completed batch identification: ${allResults.length} sightings created from ${frames.length} frames`);
 
     return allResults;
+  }
+
+  private async shouldSkipFrame(
+    framePath: string,
+    state: FrameFilterState
+  ): Promise<boolean> {
+    const minQuality = 6;
+    const maxHashDistance = 2;
+
+    const quality = await assessImageQuality(framePath);
+    if (quality < minQuality) {
+      return true;
+    }
+
+    const currentHash = await calculateImageHash(framePath);
+    if (state.lastHash) {
+      const distance = hammingDistance(state.lastHash, currentHash);
+      if (distance <= maxHashDistance) {
+        state.lastHash = currentHash;
+        return true;
+      }
+    }
+
+    state.lastHash = currentHash;
+    return false;
   }
 
   /**

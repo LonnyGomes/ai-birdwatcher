@@ -22,8 +22,18 @@ export const openaiConfig = {
 
   // Vision API specific settings
   vision: {
-    maxTokens: 500,
-    detail: 'high' as const, // 'low', 'high', or 'auto'
+    detect: {
+      maxTokens: 180,
+      detail: 'low' as const, // 'low', 'high', or 'auto'
+    },
+    identify: {
+      maxTokens: 500,
+      detail: 'high' as const,
+    },
+    compare: {
+      maxTokens: 500,
+      detail: 'high' as const,
+    },
   },
 
   // Cost optimization
@@ -35,6 +45,16 @@ export const openaiConfig = {
 
 // Prompts for bird identification
 export const prompts = {
+  detect: `Determine if any birds are present in this image.
+
+Respond in JSON format:
+{
+  "birds_detected": number,
+  "confidence": number (0-100)
+}
+
+If no birds are present, respond with: {"birds_detected": 0, "confidence": 0}`,
+
   identify: `Analyze this bird feeder image. If birds are present, provide detailed analysis:
 
 1. Identify species (scientific + common name)
