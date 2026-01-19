@@ -2,10 +2,16 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
+import fastifyStatic from '@fastify/static';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { env } from '../config/environment.js';
 import { createLogger } from '../utils/logger.js';
 import authPlugin from './plugins/auth.plugin.js';
 import errorHandlerPlugin from './plugins/errorHandler.plugin.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const logger = createLogger('Server');
 
@@ -36,6 +42,14 @@ export async function buildServer() {
   // Register custom plugins
   await fastify.register(errorHandlerPlugin);
   await fastify.register(authPlugin);
+
+  // Serve static files (frames and images)
+  const dataDir = path.join(__dirname, '../../data');
+  await fastify.register(fastifyStatic, {
+    root: path.join(dataDir, 'frames'),
+    prefix: '/api/files/',
+    decorateReply: false,
+  });
 
   // Health check endpoint
   fastify.get('/health', async () => {

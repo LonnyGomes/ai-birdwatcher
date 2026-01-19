@@ -1,5 +1,6 @@
 import { openaiService } from './openai.service.js';
 import { SightingsRepository } from '../repositories/sightings.repository.js';
+import { ProcessingMetricsRepository } from '../repositories/processingMetrics.repository.js';
 import { createLogger } from '../utils/logger.js';
 import { assessImageQuality, calculateImageHash, hammingDistance } from '../utils/imageUtils.js';
 import type { CreateSightingInput } from '@ai-birdwatcher/shared';
@@ -19,9 +20,11 @@ interface FrameFilterState {
 
 export class BirdIdentificationService {
   private sightingsRepo: SightingsRepository;
+  private metricsRepo: ProcessingMetricsRepository;
 
   constructor() {
     this.sightingsRepo = new SightingsRepository();
+    this.metricsRepo = new ProcessingMetricsRepository();
   }
 
   /**
@@ -95,23 +98,28 @@ export class BirdIdentificationService {
    */
   async identifyBirdsInFrames(
     videoId: number,
-    frames: Array<{ path: string; number: number; timestamp: number }>
+    frames: Array<{ path: string; number: number; timestamp: number }>,
+    jobId?: number
   ): Promise<IdentificationResult[]> {
     logger.info(`Starting batch identification for ${frames.length} frames from video ${videoId}`);
 
     const allResults: IdentificationResult[] = [];
     const filterState: FrameFilterState = { lastHash: null };
+    let skippedLowQualityOrDuplicate = 0;
+    let skippedNoBirdsDetected = 0;
 
     for (const frame of frames) {
       try {
         const shouldSkip = await this.shouldSkipFrame(frame.path, filterState);
         if (shouldSkip) {
+          skippedLowQualityOrDuplicate += 1;
           logger.debug(`Skipping frame ${frame.number} due to low quality or duplication`);
           continue;
         }
 
         const detection = await openaiService.detectBirds(frame.path);
         if (detection.birds_detected === 0) {
+          skippedNoBirdsDetected += 1;
           logger.debug(`No birds detected in frame ${frame.number}`);
           continue;
         }
@@ -131,7 +139,19 @@ export class BirdIdentificationService {
       }
     }
 
-    logger.info(`Completed batch identification: ${allResults.length} sightings created from ${frames.length} frames`);
+    logger.info(
+      `Completed batch identification: ${allResults.length} sightings created from ${frames.length} frames ` +
+      `(skipped ${skippedLowQualityOrDuplicate} low-quality/duplicate, ` +
+      `${skippedNoBirdsDetected} no-bird frames)`
+    );
+
+    this.metricsRepo.create({
+      video_id: videoId,
+      job_id: jobId ?? null,
+      total_frames: frames.length,
+      skipped_low_quality_duplicate: skippedLowQualityOrDuplicate,
+      skipped_no_birds: skippedNoBirdsDetected,
+    });
 
     return allResults;
   }

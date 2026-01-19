@@ -205,7 +205,8 @@ export class VideoProcessingService {
 
         const results = await birdIdentificationService.identifyBirdsInFrames(
           video.id,
-          batch
+          batch,
+          job.id
         );
 
         totalSightings += results.length;

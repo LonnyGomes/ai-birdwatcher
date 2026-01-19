@@ -25,5 +25,8 @@
     "npm": ">=9.0.0"
   },
   "author": "Lonny Gomes",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/static": "^9.0.0"
+  }
 }
