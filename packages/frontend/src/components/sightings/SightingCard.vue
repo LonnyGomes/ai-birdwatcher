@@ -29,7 +29,7 @@
             variant="flat"
           >
             <v-icon start size="small">mdi-check-circle</v-icon>
-            {{ Math.round(sighting.confidence_score * 100) }}%
+            {{ Math.round(sighting.confidence_score) }}%
           </v-chip>
         </div>
       </v-img>
@@ -82,8 +82,8 @@ function formatDate(date: string) {
 }
 
 function getConfidenceColor(score: number): string {
-  if (score >= 0.8) return 'success';
-  if (score >= 0.6) return 'warning';
+  if (score >= 80) return 'success';
+  if (score >= 60) return 'warning';
   return 'error';
 }
 </script>

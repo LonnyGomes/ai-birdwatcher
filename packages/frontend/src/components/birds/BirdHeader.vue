@@ -20,7 +20,7 @@
             ID: {{ bird.unique_identifier }}
           </v-chip>
           <v-chip v-if="bird.confidence_score" class="mr-2">
-            {{ Math.round(bird.confidence_score * 100) }}% confidence
+            {{ Math.round(bird.confidence_score) }}% confidence
           </v-chip>
         </v-card-text>
         <v-card-text v-if="bird.notes">

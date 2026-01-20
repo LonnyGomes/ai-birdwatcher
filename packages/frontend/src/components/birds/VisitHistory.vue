@@ -25,7 +25,7 @@
                 <div>
                   <div class="font-weight-bold">{{ sighting.species }}</div>
                   <div class="text-caption">
-                    Confidence: {{ Math.round(sighting.confidence_score * 100) }}%
+                    Confidence: {{ Math.round(sighting.confidence_score) }}%
                   </div>
                 </div>
               </div>

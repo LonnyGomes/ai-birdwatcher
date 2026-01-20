@@ -36,11 +36,7 @@
               <v-list-item>
                 <v-list-item-title>Confidence</v-list-item-title>
                 <v-list-item-subtitle>
-                  {{
-                    Math.round(
-                      sightingsStore.currentSighting.confidence_score * 100,
-                    )
-                  }}%
+                  {{ Math.round(sightingsStore.currentSighting.confidence_score) }}%
                 </v-list-item-subtitle>
               </v-list-item>
               <v-list-item
