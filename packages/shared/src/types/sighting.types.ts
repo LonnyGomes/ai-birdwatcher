@@ -1,4 +1,4 @@
-import type { BirdGender } from './bird.types.js';
+import type { BirdGender } from "./bird.types.js";
 
 export interface Sighting {
   id: number;
@@ -39,4 +39,11 @@ export interface UpdateSightingInput {
 export interface SightingWithBird extends Sighting {
   bird_unique_identifier?: string;
   bird_common_name?: string;
+}
+
+export interface SightingAIAnalysis {
+  common_name?: string;
+  features?: string;
+  image_quality?: number;
+  assessed_quality?: number;
 }
