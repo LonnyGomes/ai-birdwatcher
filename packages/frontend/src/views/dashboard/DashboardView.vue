@@ -1,13 +1,13 @@
 <template>
   <div>
-    <v-row>
-      <v-col cols="12">
-        <h1 class="text-h4 mb-4">Dashboard</h1>
-      </v-col>
-    </v-row>
+    <!-- Header Section -->
+    <div class="dashboard-header mb-8">
+      <h1 class="text-h3 font-weight-bold mb-2">Dashboard</h1>
+      <p class="text-subtitle-1 text-medium-emphasis">Monitor your bird watching activity and insights</p>
+    </div>
 
     <!-- Stats Cards -->
-    <v-row v-if="statisticsStore.overview">
+    <v-row v-if="statisticsStore.overview" class="mb-6">
       <v-col cols="12" sm="6" md="3">
         <StatsCard
           title="Total Videos"

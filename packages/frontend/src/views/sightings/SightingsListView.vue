@@ -1,39 +1,56 @@
 <template>
   <div>
-    <v-row>
-      <v-col cols="12">
-        <h1 class="text-h4 mb-4">Sightings</h1>
-      </v-col>
-    </v-row>
+    <!-- Header Section -->
+    <div class="page-header mb-8">
+      <div class="d-flex align-center justify-space-between mb-4">
+        <div>
+          <h1 class="text-h3 font-weight-bold mb-2">Bird Sightings</h1>
+          <p class="text-subtitle-1 text-medium-emphasis">
+            Browse all detected bird sightings from your videos
+          </p>
+        </div>
+        <v-chip
+          v-if="sightingsStore.total"
+          color="primary"
+          variant="tonal"
+          size="large"
+        >
+          <v-icon start>mdi-binoculars</v-icon>
+          {{ sightingsStore.total }} Total
+        </v-chip>
+      </div>
+      <SightingsFilter @filter="handleFilter" />
+    </div>
 
-    <v-row>
-      <v-col cols="12">
-        <SightingsFilter @filter="handleFilter" />
-      </v-col>
-    </v-row>
-
+    <!-- Loading State -->
     <v-row v-if="sightingsStore.loading">
       <v-col cols="12">
         <LoadingSpinner />
       </v-col>
     </v-row>
 
-    <v-row v-else-if="sightingsStore.sightings.length">
+    <!-- Sightings Grid -->
+    <v-row v-else-if="sightingsStore.sightings.length" class="mb-6">
       <v-col
         v-for="sighting in sightingsStore.sightings"
         :key="sighting.id"
         cols="12"
         sm="6"
         md="4"
-        lg="3"
+        xl="3"
       >
         <SightingCard :sighting="sighting" />
       </v-col>
     </v-row>
 
+    <!-- Empty State -->
     <v-row v-else>
       <v-col cols="12">
-        <EmptyState message="No sightings found" />
+        <EmptyState
+          icon="mdi-binoculars"
+          title="No sightings found"
+          message="Try adjusting your filters or upload more videos"
+        />
       </v-col>
     </v-row>
   </div>
