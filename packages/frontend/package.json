@@ -24,6 +24,7 @@
     "vuetify": "^3.11.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@vitejs/plugin-vue": "^5.0.2",
     "@vue/test-utils": "^2.4.3",
     "typescript": "^5.9.3",
