@@ -2,6 +2,7 @@ import { getDatabase, initializeDatabase } from '../connection.js';
 import type Database from 'better-sqlite3';
 import * as migration001 from './001_initial_schema.js';
 import * as migration002 from './002_processing_metrics.js';
+import * as migration003 from './003_species_info.js';
 
 interface Migration {
   id: number;
@@ -23,6 +24,12 @@ const migrations: Migration[] = [
     name: '002_processing_metrics',
     up: migration002.up,
     down: migration002.down,
+  },
+  {
+    id: 3,
+    name: '003_species_info',
+    up: migration003.up,
+    down: migration003.down,
   },
 ];
 

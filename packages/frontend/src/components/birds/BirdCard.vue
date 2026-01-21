@@ -7,7 +7,7 @@
   >
     <div class="image-container">
       <v-img
-        :src="bird.representative_image_path ? `/api/files/${bird.representative_image_path}` : '/placeholder.png'"
+        :src="imageSource"
         height="240"
         cover
         class="bird-image"
@@ -23,6 +23,24 @@
 
         <!-- Gradient Overlay -->
         <div class="image-overlay"></div>
+
+        <!-- Wikipedia Link Badge -->
+        <div v-if="wikipediaPageUrl" class="wikipedia-badge">
+          <v-btn
+            icon
+            size="small"
+            color="white"
+            variant="flat"
+            :href="wikipediaPageUrl"
+            target="_blank"
+            @click.stop
+          >
+            <v-icon size="small">mdi-wikipedia</v-icon>
+            <v-tooltip activator="parent" location="left">
+              View on Wikipedia
+            </v-tooltip>
+          </v-btn>
+        </div>
 
         <!-- Visit Count Badge -->
         <div class="visits-badge">
@@ -72,9 +90,24 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+
+const props = defineProps<{
   bird: any;
+  speciesImageUrl?: string | null;
+  wikipediaPageUrl?: string | null;
 }>();
+
+const imageSource = computed(() => {
+  // Prefer Wikipedia image, fall back to representative image
+  if (props.speciesImageUrl) {
+    return props.speciesImageUrl;
+  }
+  if (props.bird.representative_image_path) {
+    return `/api/files/${props.bird.representative_image_path}`;
+  }
+  return '/placeholder.png';
+});
 </script>
 
 <style scoped>
@@ -127,5 +160,20 @@ defineProps<{
   top: 12px;
   right: 12px;
   z-index: 1;
+}
+
+.wikipedia-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+}
+
+.wikipedia-badge .v-btn {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+.wikipedia-badge .v-btn:hover {
+  background: rgba(0, 0, 0, 0.7) !important;
 }
 </style>

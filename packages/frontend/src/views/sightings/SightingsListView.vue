@@ -39,7 +39,10 @@
         md="4"
         xl="3"
       >
-        <SightingCard :sighting="sighting" />
+        <SightingCard
+          :sighting="sighting"
+          :species-image-url="speciesStore.getSpeciesImage(sighting.species)"
+        />
       </v-col>
     </v-row>
 
@@ -57,14 +60,25 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useSightingsStore } from '@/stores/sightings.store';
+import { useSpeciesStore } from '@/stores/species.store';
 import SightingsFilter from '@/components/sightings/SightingsFilter.vue';
 import SightingCard from '@/components/sightings/SightingCard.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import EmptyState from '@/components/common/EmptyState.vue';
 
 const sightingsStore = useSightingsStore();
+const speciesStore = useSpeciesStore();
+
+// Fetch species images when sightings change
+watch(() => sightingsStore.sightings, async (sightings) => {
+  if (sightings.length > 0) {
+    const speciesNames = sightings.map((s: any) => s.species as string);
+    const uniqueSpecies = Array.from(new Set<string>(speciesNames));
+    await speciesStore.fetchSpeciesImages(uniqueSpecies);
+  }
+}, { immediate: true });
 
 onMounted(() => {
   sightingsStore.fetchSightings();

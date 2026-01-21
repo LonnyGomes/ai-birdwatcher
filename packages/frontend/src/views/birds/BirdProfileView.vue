@@ -10,7 +10,11 @@
 
     <v-row class="mt-4">
       <v-col cols="12">
-        <BirdHeader :bird="birdsStore.currentBird" />
+        <BirdHeader
+          :bird="birdsStore.currentBird"
+          :species-image-url="speciesStore.getSpeciesImage(birdsStore.currentBird.species)"
+          :wikipedia-page-url="speciesStore.getSpeciesPageUrl(birdsStore.currentBird.species)"
+        />
       </v-col>
     </v-row>
 
@@ -57,9 +61,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBirdsStore } from '@/stores/birds.store';
+import { useSpeciesStore } from '@/stores/species.store';
 import BirdHeader from '@/components/birds/BirdHeader.vue';
 import VisitHistory from '@/components/birds/VisitHistory.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
@@ -67,6 +72,14 @@ import { format } from 'date-fns';
 
 const route = useRoute();
 const birdsStore = useBirdsStore();
+const speciesStore = useSpeciesStore();
+
+// Fetch species data when bird is loaded
+watch(() => birdsStore.currentBird, async (bird) => {
+  if (bird?.species) {
+    await speciesStore.fetchSpeciesInfo(bird.species);
+  }
+}, { immediate: true });
 
 onMounted(() => {
   const id = parseInt(route.params.id as string);

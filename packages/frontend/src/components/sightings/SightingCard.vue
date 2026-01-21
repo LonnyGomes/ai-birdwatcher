@@ -21,6 +21,20 @@
         <!-- Gradient Overlay -->
         <div class="image-overlay"></div>
 
+        <!-- Wikipedia Species Reference Image -->
+        <div v-if="speciesImageUrl" class="species-reference-badge">
+          <v-avatar size="48" class="species-avatar">
+            <v-img :src="speciesImageUrl" cover>
+              <template #placeholder>
+                <v-icon color="grey-lighten-1">mdi-bird</v-icon>
+              </template>
+            </v-img>
+          </v-avatar>
+          <v-tooltip activator="parent" location="right">
+            Wikipedia reference photo
+          </v-tooltip>
+        </div>
+
         <!-- Confidence Badge on Image -->
         <div class="confidence-badge">
           <v-chip
@@ -75,6 +89,7 @@ import { format } from 'date-fns';
 
 defineProps<{
   sighting: any;
+  speciesImageUrl?: string | null;
 }>();
 
 function formatDate(date: string) {
@@ -133,5 +148,24 @@ function getConfidenceColor(score: number): string {
   top: 12px;
   right: 12px;
   z-index: 1;
+}
+
+.species-reference-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1;
+}
+
+.species-avatar {
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.species-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 </style>

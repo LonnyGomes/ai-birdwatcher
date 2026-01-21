@@ -12,7 +12,12 @@
       </v-col>
     </v-row>
 
-    <BirdGrid v-else-if="birdsStore.birds.length" :birds="birdsStore.birds" />
+    <BirdGrid
+      v-else-if="birdsStore.birds.length"
+      :birds="birdsStore.birds"
+      :species-images="speciesStore.speciesImages"
+      :species-urls="speciesStore.speciesPageUrls"
+    />
 
     <v-row v-else>
       <v-col cols="12">
@@ -23,13 +28,24 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useBirdsStore } from '@/stores/birds.store';
+import { useSpeciesStore } from '@/stores/species.store';
 import BirdGrid from '@/components/birds/BirdGrid.vue';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 import EmptyState from '@/components/common/EmptyState.vue';
 
 const birdsStore = useBirdsStore();
+const speciesStore = useSpeciesStore();
+
+// Fetch species data when birds are loaded
+watch(() => birdsStore.birds, async (birds) => {
+  if (birds.length > 0) {
+    const speciesNames = birds.map((b: any) => b.species as string);
+    const uniqueSpecies = Array.from(new Set<string>(speciesNames));
+    await speciesStore.fetchSpeciesData(uniqueSpecies);
+  }
+}, { immediate: true });
 
 onMounted(() => {
   birdsStore.fetchBirds();

@@ -67,6 +67,29 @@
           </v-card-text>
         </v-card>
 
+        <!-- Wikipedia Species Reference -->
+        <v-card v-if="speciesImageUrl" class="mt-4">
+          <v-card-title class="d-flex align-center">
+            <v-icon class="mr-2">mdi-wikipedia</v-icon>
+            Species Reference
+          </v-card-title>
+          <v-card-text>
+            <div class="d-flex align-center">
+              <v-avatar size="80" class="mr-4">
+                <v-img :src="speciesImageUrl" cover />
+              </v-avatar>
+              <div>
+                <p class="text-body-2 text-medium-emphasis mb-1">
+                  Reference photo from Wikipedia
+                </p>
+                <p class="text-caption text-disabled">
+                  Compare with the detected frame to verify identification
+                </p>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+
         <v-card v-if="sightingsStore.currentSighting.ai_analysis" class="mt-4">
           <v-card-title>AI Analysis</v-card-title>
           <v-list>
@@ -139,14 +162,26 @@
 </style>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useSightingsStore } from "@/stores/sightings.store";
+import { useSpeciesStore } from "@/stores/species.store";
 import LoadingSpinner from "@/components/common/LoadingSpinner.vue";
 import { format } from "date-fns";
 
 const route = useRoute();
 const sightingsStore = useSightingsStore();
+const speciesStore = useSpeciesStore();
+
+const speciesImageUrl = ref<string | null>(null);
+
+// Fetch species image when sighting loads
+watch(() => sightingsStore.currentSighting, async (sighting) => {
+  if (sighting?.species) {
+    await speciesStore.fetchSpeciesImage(sighting.species);
+    speciesImageUrl.value = speciesStore.getSpeciesImage(sighting.species);
+  }
+}, { immediate: true });
 
 onMounted(() => {
   const id = parseInt(route.params.id as string);

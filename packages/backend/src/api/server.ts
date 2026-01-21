@@ -71,6 +71,7 @@ export async function buildServer() {
         sightings: '/api/sightings',
         birds: '/api/birds',
         statistics: '/api/statistics',
+        species: '/api/species',
       },
     };
   });
@@ -81,12 +82,14 @@ export async function buildServer() {
   const sightingsRoutes = (await import('./routes/sightings.routes.js')).default;
   const birdsRoutes = (await import('./routes/birds.routes.js')).default;
   const statisticsRoutes = (await import('./routes/statistics.routes.js')).default;
+  const { speciesRoutes } = await import('./routes/species.routes.js');
 
   await fastify.register(authRoutes, { prefix: '/api/auth' });
   await fastify.register(videosRoutes, { prefix: '/api/videos' });
   await fastify.register(sightingsRoutes, { prefix: '/api/sightings' });
   await fastify.register(birdsRoutes, { prefix: '/api/birds' });
   await fastify.register(statisticsRoutes, { prefix: '/api/statistics' });
+  await fastify.register(speciesRoutes, { prefix: '/api/species' });
 
   return fastify;
 }

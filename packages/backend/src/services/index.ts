@@ -7,3 +7,4 @@ export { jobQueueService, JobQueueService } from './jobQueue.service.js';
 export { videoProcessingService, VideoProcessingService } from './videoProcessing.service.js';
 export { fileWatcherService, FileWatcherService } from './fileWatcher.service.js';
 export { authService, AuthService } from './auth.service.js';
+export { wikipediaService, WikipediaService } from './wikipedia.service.js';
