@@ -1,89 +1,421 @@
-/* Global styles */
+/* ============================================
+   AI Birdwatcher - Nature-Inspired Design System
+   ============================================ */
+
+/* ============================================
+   CSS Custom Properties (Design Tokens)
+   ============================================ */
+:root {
+  /* Typography */
+  --font-family-base: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extra-bold: 800;
+
+  /* Font Sizes */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  /* Line Heights */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+
+  /* Letter Spacing */
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+
+  /* Timing Functions */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* Nature Colors (for CSS usage) */
+  --color-forest-deep: #1B4332;
+  --color-forest-mid: #2D6A4F;
+  --color-forest-light: #40916C;
+  --color-earth-deep: #5C4033;
+  --color-earth-mid: #7A5C4A;
+  --color-earth-light: #9B7B6B;
+  --color-sunset-deep: #DC2F02;
+  --color-sunset-mid: #E85D04;
+  --color-sunset-light: #F48C06;
+  --color-golden: #FFBA08;
+  --color-moss: #52796F;
+  --color-dawn: #FFE5D9;
+}
+
+/* ============================================
+   Global Resets & Base Styles
+   ============================================ */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Utility classes */
-.fill-height {
-  height: 100%;
+/* ============================================
+   Typography Utility Classes
+   ============================================ */
+.text-display {
+  font-size: var(--text-5xl);
+  font-weight: var(--font-weight-extra-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+.text-h1 {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-tight);
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+.text-h2 {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-bold);
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
+.text-h3 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-semibold);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
-  background-clip: padding-box;
+.text-h4 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
 }
 
-/* Dark mode scrollbar */
-.v-theme--dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  background-clip: padding-box;
+.text-h5 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-medium);
 }
 
-.v-theme--dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-  background-clip: padding-box;
+.text-h6 {
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-medium);
 }
 
-/* Smooth page transitions */
-.v-main {
-  transition: background-color 0.3s ease;
+.text-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
 }
 
-/* Better link styling */
-a {
-  text-decoration: none;
-  transition: color 0.2s ease;
+/* ============================================
+   Nature-Inspired Gradients
+   ============================================ */
+.gradient-forest {
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #40916C 100%);
 }
 
-/* Card animations */
-@keyframes fadeInUp {
-  from {
+.gradient-sunset {
+  background: linear-gradient(135deg, #DC2F02 0%, #E85D04 30%, #F48C06 60%, #FAA307 100%);
+}
+
+.gradient-earth {
+  background: linear-gradient(135deg, #5C4033 0%, #7A5C4A 50%, #9B7B6B 100%);
+}
+
+.gradient-dawn {
+  background: linear-gradient(135deg, #FFE5D9 0%, #FFD3BA 50%, #FAA307 100%);
+}
+
+.gradient-dusk {
+  background: linear-gradient(135deg, #364156 0%, #3D5A80 50%, #4EA8DE 100%);
+}
+
+.gradient-moss {
+  background: linear-gradient(135deg, #52796F 0%, #74C69D 50%, #95D5B2 100%);
+}
+
+.gradient-golden {
+  background: linear-gradient(135deg, #E85D04 0%, #F48C06 30%, #FAA307 60%, #FFBA08 100%);
+}
+
+/* Overlay Gradients */
+.gradient-overlay-forest {
+  background: linear-gradient(to bottom, rgba(27, 67, 50, 0) 0%, rgba(27, 67, 50, 0.85) 100%);
+}
+
+.gradient-overlay-warm {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(92, 64, 51, 0.75) 100%);
+}
+
+.gradient-overlay-dark {
+  background: linear-gradient(to bottom, transparent 0%, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+/* Text Gradients */
+.text-gradient-nature {
+  background: linear-gradient(135deg, #1B4332 0%, #40916C 50%, #E85D04 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-forest {
+  background: linear-gradient(135deg, #1B4332 0%, #40916C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-sunset {
+  background: linear-gradient(135deg, #E85D04 0%, #FAA307 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   Glassmorphism Effects
+   ============================================ */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(27, 67, 50, 0.1);
+}
+
+.glass-card-subtle {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-card-prominent {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 48px rgba(27, 67, 50, 0.15);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(27, 67, 50, 0.08);
+}
+
+/* Dark mode glass effects */
+.v-theme--dark .glass-card {
+  background: rgba(26, 47, 35, 0.7);
+  border: 1px solid rgba(116, 198, 157, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.v-theme--dark .glass-card-subtle {
+  background: rgba(26, 47, 35, 0.5);
+  border: 1px solid rgba(116, 198, 157, 0.08);
+}
+
+.v-theme--dark .glass-card-prominent {
+  background: rgba(26, 47, 35, 0.85);
+  border: 1px solid rgba(116, 198, 157, 0.15);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+}
+
+.v-theme--dark .glass-nav {
+  background: rgba(26, 47, 35, 0.85);
+  border-bottom: 1px solid rgba(116, 198, 157, 0.1);
+}
+
+/* ============================================
+   Shadow System
+   ============================================ */
+.shadow-nature-sm {
+  box-shadow: 0 2px 8px rgba(27, 67, 50, 0.08);
+}
+
+.shadow-nature-md {
+  box-shadow: 0 4px 16px rgba(27, 67, 50, 0.12);
+}
+
+.shadow-nature-lg {
+  box-shadow: 0 8px 32px rgba(27, 67, 50, 0.16);
+}
+
+.shadow-nature-xl {
+  box-shadow: 0 16px 48px rgba(27, 67, 50, 0.2);
+}
+
+.shadow-glow-primary {
+  box-shadow: 0 0 20px 4px rgba(64, 145, 108, 0.15);
+}
+
+.shadow-glow-accent {
+  box-shadow: 0 0 20px 4px rgba(232, 93, 4, 0.15);
+}
+
+.v-theme--dark .shadow-nature-sm {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.v-theme--dark .shadow-nature-md {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.v-theme--dark .shadow-nature-lg {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.v-theme--dark .shadow-nature-xl {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   Animations & Keyframes
+   ============================================ */
+
+/* Page Entrance */
+@keyframes pageSlideIn {
+  0% {
     opacity: 0;
     transform: translateY(20px);
   }
-  to {
+  100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.fade-in-up {
-  animation: fadeInUp 0.4s ease-out;
+@keyframes pageFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
-/* Loading states */
-@keyframes shimmer {
+/* Card Animations */
+@keyframes cardLift {
   0% {
-    background-position: -1000px 0;
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(27, 67, 50, 0.1);
   }
   100% {
-    background-position: 1000px 0;
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(27, 67, 50, 0.2);
   }
+}
+
+@keyframes cardGlow {
+  0% { box-shadow: 0 0 0 0 rgba(64, 145, 108, 0); }
+  50% { box-shadow: 0 0 20px 4px rgba(64, 145, 108, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(64, 145, 108, 0); }
+}
+
+/* Staggered List Animation */
+@keyframes staggerFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  animation: staggerFadeIn 0.4s var(--ease-out-expo) forwards;
+  opacity: 0;
+}
+
+.stagger-item:nth-child(1) { animation-delay: 0ms; }
+.stagger-item:nth-child(2) { animation-delay: 50ms; }
+.stagger-item:nth-child(3) { animation-delay: 100ms; }
+.stagger-item:nth-child(4) { animation-delay: 150ms; }
+.stagger-item:nth-child(5) { animation-delay: 200ms; }
+.stagger-item:nth-child(6) { animation-delay: 250ms; }
+.stagger-item:nth-child(7) { animation-delay: 300ms; }
+.stagger-item:nth-child(8) { animation-delay: 350ms; }
+.stagger-item:nth-child(9) { animation-delay: 400ms; }
+.stagger-item:nth-child(10) { animation-delay: 450ms; }
+.stagger-item:nth-child(11) { animation-delay: 500ms; }
+.stagger-item:nth-child(12) { animation-delay: 550ms; }
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.pulse-active {
+  animation: pulse 2s var(--ease-smooth) infinite;
+}
+
+/* Rotate Animation */
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Shimmer Loading Effect (Nature themed) */
+@keyframes shimmerNature {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton-nature {
+  background: linear-gradient(
+    90deg,
+    rgba(64, 145, 108, 0.05) 0%,
+    rgba(64, 145, 108, 0.15) 50%,
+    rgba(64, 145, 108, 0.05) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmerNature 2s infinite;
+}
+
+/* Legacy shimmer for compatibility */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
 }
 
 .skeleton-loader {
@@ -97,55 +429,198 @@ a {
   animation: shimmer 2s infinite;
 }
 
-/* Modern gradient backgrounds */
-.gradient-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* ============================================
+   Interactive Element Styles
+   ============================================ */
+
+/* Button with ripple effect */
+.btn-nature {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s var(--ease-smooth);
 }
 
-.gradient-success {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.btn-nature::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s var(--ease-out-expo), height 0.6s var(--ease-out-expo);
 }
 
-.gradient-info {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+.btn-nature:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
-.gradient-warning {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+/* Icon Bounce on Hover */
+.icon-bounce {
+  transition: transform 0.3s var(--ease-bounce);
 }
 
-/* Text gradient effect */
-.text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.icon-bounce:hover {
+  transform: scale(1.15);
 }
 
-/* Glass morphism effect */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* Icon Rotate on Hover */
+.icon-rotate:hover {
+  transform: rotate(15deg);
 }
 
-/* Modern shadow utilities */
-.shadow-soft {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* Link hover effect */
+a {
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-.shadow-medium {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+/* ============================================
+   Card Hover Effects
+   ============================================ */
+.card-hover {
+  transition: all 0.4s var(--ease-out-expo);
 }
 
-.shadow-hard {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+.card-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(27, 67, 50, 0.2);
 }
 
-/* Improve focus states for accessibility */
+.v-theme--dark .card-hover:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   Page Transitions (Vue Router)
+   ============================================ */
+.page-enter-active {
+  animation: pageSlideIn 0.4s var(--ease-out-expo);
+}
+
+.page-leave-active {
+  animation: pageFadeIn 0.2s ease-out reverse;
+}
+
+/* ============================================
+   Background Patterns
+   ============================================ */
+.bg-pattern-topo {
+  background-color: rgb(var(--v-theme-background));
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0c27.614 0 50 22.386 50 50s-22.386 50-50 50S0 77.614 0 50 22.386 0 50 0zm0 10c-22.091 0-40 17.909-40 40s17.909 40 40 40 40-17.909 40-40-17.909-40-40-40zm0 10c16.569 0 30 13.431 30 30 0 16.569-13.431 30-30 30-16.569 0-30-13.431-30-30 0-16.569 13.431-30 30-30zm0 10c-11.046 0-20 8.954-20 20s8.954 20 20 20 20-8.954 20-20-8.954-20-20-20z' fill='%231B4332' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* ============================================
+   Custom Scrollbar
+   ============================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(27, 67, 50, 0.2);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(27, 67, 50, 0.35);
+  background-clip: padding-box;
+}
+
+/* Dark mode scrollbar */
+.v-theme--dark ::-webkit-scrollbar-thumb {
+  background: rgba(116, 198, 157, 0.2);
+  background-clip: padding-box;
+}
+
+.v-theme--dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(116, 198, 157, 0.35);
+  background-clip: padding-box;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.fill-height {
+  height: 100%;
+}
+
+.fade-in-up {
+  animation: pageSlideIn 0.4s var(--ease-out-expo);
+}
+
+/* Smooth page transitions */
+.v-main {
+  transition: background-color 0.3s ease;
+}
+
+/* ============================================
+   Focus States (Accessibility)
+   ============================================ */
 *:focus-visible {
-  outline: 2px solid var(--v-primary-base);
+  outline: 2px solid var(--color-forest-light);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ============================================
+   Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .stagger-item {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* ============================================
+   Component-Specific Helpers
+   ============================================ */
+
+/* Stats Card Color Variants */
+.stats-card--forest { border-top: 4px solid #1B4332; }
+.stats-card--sunset { border-top: 4px solid #E85D04; }
+.stats-card--earth { border-top: 4px solid #5C4033; }
+.stats-card--moss { border-top: 4px solid #52796F; }
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.section-title {
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-2xl);
+  white-space: nowrap;
+}
+
+.section-line {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(27, 67, 50, 0.3) 0%, transparent 100%);
+}
+
+.v-theme--dark .section-line {
+  background: linear-gradient(90deg, rgba(116, 198, 157, 0.3) 0%, transparent 100%);
 }

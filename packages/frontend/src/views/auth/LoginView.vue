@@ -1,45 +1,83 @@
 <template>
-  <v-card>
-    <v-card-title class="text-h5">
-      AI Birdwatcher - Login
-    </v-card-title>
-    <v-card-text>
-      <v-form @submit.prevent="handleLogin">
-        <v-text-field
-          v-model="username"
-          label="Username"
-          prepend-icon="mdi-account"
-          :rules="[rules.required]"
-          required
-        />
-        <v-text-field
-          v-model="password"
-          label="Password"
-          prepend-icon="mdi-lock"
-          type="password"
-          :rules="[rules.required]"
-          required
-        />
-        <v-alert v-if="authStore.error" type="error" class="mt-3">
+  <div class="login-view">
+    <!-- Mobile brand (hidden on desktop) -->
+    <div class="mobile-brand">
+      <div class="brand-icon">
+        <v-icon size="28" color="white">mdi-bird</v-icon>
+      </div>
+      <h1 class="brand-name">AI Birdwatcher</h1>
+    </div>
+
+    <v-card class="login-card glass-card-prominent">
+      <div class="card-header">
+        <h2 class="card-title">Welcome Back</h2>
+        <p class="card-subtitle">Sign in to continue to your dashboard</p>
+      </div>
+
+      <v-form @submit.prevent="handleLogin" class="login-form">
+        <div class="form-fields">
+          <div class="field-wrapper">
+            <label class="field-label">Username</label>
+            <v-text-field
+              v-model="username"
+              placeholder="Enter your username"
+              variant="outlined"
+              density="comfortable"
+              prepend-inner-icon="mdi-account"
+              :rules="[rules.required]"
+              hide-details="auto"
+              class="nature-input"
+            />
+          </div>
+
+          <div class="field-wrapper">
+            <label class="field-label">Password</label>
+            <v-text-field
+              v-model="password"
+              placeholder="Enter your password"
+              variant="outlined"
+              density="comfortable"
+              prepend-inner-icon="mdi-lock"
+              :type="showPassword ? 'text' : 'password'"
+              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showPassword = !showPassword"
+              :rules="[rules.required]"
+              hide-details="auto"
+              class="nature-input"
+            />
+          </div>
+        </div>
+
+        <v-alert
+          v-if="authStore.error"
+          type="error"
+          variant="tonal"
+          class="error-alert"
+        >
           {{ authStore.error }}
         </v-alert>
+
         <v-btn
           type="submit"
           color="primary"
           block
+          size="large"
           :loading="authStore.loading"
-          class="mt-4"
+          class="submit-btn"
         >
-          Login
+          <v-icon start>mdi-login</v-icon>
+          Sign In
         </v-btn>
       </v-form>
-    </v-card-text>
-    <v-card-actions>
-      <v-btn text :to="{ name: 'register' }">
-        Don't have an account? Register
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+
+      <div class="card-footer">
+        <span class="footer-text">Don't have an account?</span>
+        <router-link :to="{ name: 'register' }" class="footer-link">
+          Create Account
+        </router-link>
+      </div>
+    </v-card>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -53,9 +91,10 @@ const route = useRoute();
 
 const username = ref('');
 const password = ref('');
+const showPassword = ref(false);
 
 const rules = {
-  required: (v: string) => !!v || 'Required',
+  required: (v: string) => !!v || 'This field is required',
 };
 
 async function handleLogin() {
@@ -66,3 +105,199 @@ async function handleLogin() {
   }
 }
 </script>
+
+<style scoped>
+.login-view {
+  width: 100%;
+}
+
+/* Mobile Brand */
+.mobile-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 960px) {
+  .mobile-brand {
+    display: none;
+  }
+}
+
+.mobile-brand .brand-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.mobile-brand .brand-name {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: white;
+}
+
+/* Card */
+.login-card {
+  border-radius: 24px !important;
+  padding: 36px;
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-card {
+    animation: none;
+  }
+}
+
+.card-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.card-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  font-size: 1.75rem;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #1B4332 0%, #40916C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.v-theme--dark .card-title {
+  background: linear-gradient(135deg, #74C69D 0%, #52B788 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card-subtitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+/* Form */
+.login-form {
+  margin-bottom: 24px;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.field-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.nature-input :deep(.v-field) {
+  border-radius: 12px;
+}
+
+.nature-input :deep(.v-field--focused) {
+  box-shadow: 0 0 0 3px rgba(27, 67, 50, 0.1);
+}
+
+.v-theme--dark .nature-input :deep(.v-field--focused) {
+  box-shadow: 0 0 0 3px rgba(116, 198, 157, 0.15);
+}
+
+.error-alert {
+  margin-bottom: 20px;
+  border-radius: 12px;
+}
+
+.submit-btn {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: none;
+  letter-spacing: 0;
+  border-radius: 14px;
+  height: 52px;
+}
+
+/* Footer */
+.card-footer {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(27, 67, 50, 0.08);
+}
+
+.v-theme--dark .card-footer {
+  border-top-color: rgba(116, 198, 157, 0.1);
+}
+
+.footer-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  opacity: 0.6;
+  margin-right: 6px;
+}
+
+.footer-link {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1B4332;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.v-theme--dark .footer-link {
+  color: #74C69D;
+}
+
+.footer-link:hover {
+  color: #40916C;
+}
+
+.v-theme--dark .footer-link:hover {
+  color: #52B788;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .login-card {
+    padding: 28px 24px;
+  }
+
+  .card-title {
+    font-size: 1.5rem;
+  }
+}
+</style>

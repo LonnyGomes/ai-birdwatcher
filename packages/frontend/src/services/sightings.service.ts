@@ -1,5 +1,5 @@
 import apiClient from "./api.service";
-import SightingAIAnalysis from "@shared/types/sighting.types";
+import { SightingAIAnalysis } from "@shared/types/sighting.types";
 
 interface SightingsListParams {
   video_id?: number;

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import sightingsService from "@/services/sightings.service";
-import SightingAIAnalysis from "@shared/types/sighting.types";
+import { SightingAIAnalysis } from "@shared/types/sighting.types";
 
 export const useSightingsStore = defineStore("sightings", () => {
   const sightings = ref<any[]>([]);

@@ -1,24 +1,19 @@
 <template>
   <v-card
     :to="{ name: 'bird-profile', params: { id: bird.id } }"
-    class="bird-card"
-    elevation="2"
-    hover
+    class="bird-card glass-card"
   >
     <div class="image-container">
       <v-img
         :src="imageSource"
-        height="240"
+        height="220"
         cover
         class="bird-image"
       >
         <template #placeholder>
-          <v-row class="fill-height bird-placeholder" align="center" justify="center">
-            <div class="text-center">
-              <v-icon size="64" color="primary">mdi-bird</v-icon>
-              <div class="text-subtitle-2 mt-2">No Image</div>
-            </div>
-          </v-row>
+          <div class="image-placeholder">
+            <v-icon size="48" class="placeholder-icon">mdi-bird</v-icon>
+          </div>
         </template>
 
         <!-- Gradient Overlay -->
@@ -29,13 +24,13 @@
           <v-btn
             icon
             size="small"
-            color="white"
             variant="flat"
             :href="wikipediaPageUrl"
             target="_blank"
+            class="wiki-btn"
             @click.stop
           >
-            <v-icon size="small">mdi-wikipedia</v-icon>
+            <v-icon size="18">mdi-wikipedia</v-icon>
             <v-tooltip activator="parent" location="left">
               View on Wikipedia
             </v-tooltip>
@@ -44,48 +39,32 @@
 
         <!-- Visit Count Badge -->
         <div class="visits-badge">
-          <v-chip
-            size="small"
-            color="primary"
-            variant="flat"
-          >
-            <v-icon start size="small">mdi-eye</v-icon>
-            {{ bird.total_visits }} visits
-          </v-chip>
+          <div class="visits-chip">
+            <v-icon size="14" class="mr-1">mdi-eye</v-icon>
+            {{ bird.total_visits }}
+          </div>
         </div>
       </v-img>
     </div>
 
-    <v-card-title class="text-h6 font-weight-bold pb-1">
-      {{ bird.common_name || bird.species }}
-    </v-card-title>
+    <div class="card-content">
+      <h3 class="bird-name">{{ bird.common_name || bird.species }}</h3>
+      <p class="bird-species">{{ bird.species }}</p>
 
-    <v-card-subtitle class="pb-2">
-      <span class="text-caption font-italic">{{ bird.species }}</span>
-    </v-card-subtitle>
+      <div class="bird-tags">
+        <span class="tag tag--secondary">
+          <v-icon size="12" class="mr-1">mdi-identifier</v-icon>
+          {{ bird.unique_identifier }}
+        </span>
 
-    <v-card-text class="pt-2">
-      <v-chip
-        size="small"
-        variant="tonal"
-        color="secondary"
-      >
-        <v-icon start size="small">mdi-identifier</v-icon>
-        {{ bird.unique_identifier }}
-      </v-chip>
-
-      <v-chip
-        v-if="bird.gender"
-        size="small"
-        variant="tonal"
-        class="ml-2"
-      >
-        <v-icon start size="small">
-          {{ bird.gender === 'male' ? 'mdi-gender-male' : 'mdi-gender-female' }}
-        </v-icon>
-        {{ bird.gender }}
-      </v-chip>
-    </v-card-text>
+        <span v-if="bird.gender" class="tag" :class="bird.gender === 'male' ? 'tag--male' : 'tag--female'">
+          <v-icon size="12" class="mr-1">
+            {{ bird.gender === 'male' ? 'mdi-gender-male' : 'mdi-gender-female' }}
+          </v-icon>
+          {{ bird.gender }}
+        </span>
+      </div>
+    </div>
   </v-card>
 </template>
 
@@ -99,7 +78,6 @@ const props = defineProps<{
 }>();
 
 const imageSource = computed(() => {
-  // Prefer Wikipedia image, fall back to representative image
   if (props.speciesImageUrl) {
     return props.speciesImageUrl;
   }
@@ -112,14 +90,23 @@ const imageSource = computed(() => {
 
 <style scoped>
 .bird-card {
-  border-radius: 12px !important;
+  border-radius: 20px !important;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
 .bird-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2) !important;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 20px 40px rgba(27, 67, 50, 0.18),
+    0 0 0 1px rgba(64, 145, 108, 0.1) !important;
+}
+
+.v-theme--dark .bird-card:hover {
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(116, 198, 157, 0.15) !important;
 }
 
 .image-container {
@@ -128,16 +115,32 @@ const imageSource = computed(() => {
 }
 
 .bird-image {
-  transition: transform 0.3s ease;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .bird-card:hover .bird-image {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
-.bird-placeholder {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  opacity: 0.1;
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(27, 67, 50, 0.08) 0%, rgba(64, 145, 108, 0.08) 100%);
+}
+
+.v-theme--dark .image-placeholder {
+  background: linear-gradient(135deg, rgba(64, 145, 108, 0.12) 0%, rgba(116, 198, 157, 0.12) 100%);
+}
+
+.placeholder-icon {
+  color: rgba(27, 67, 50, 0.3);
+}
+
+.v-theme--dark .placeholder-icon {
+  color: rgba(116, 198, 157, 0.4);
 }
 
 .image-overlay {
@@ -149,10 +152,11 @@ const imageSource = computed(() => {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    transparent 50%,
-    rgba(0, 0, 0, 0.3) 100%
+    transparent 40%,
+    rgba(27, 67, 50, 0.7) 100%
   );
   pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 .visits-badge {
@@ -162,6 +166,20 @@ const imageSource = computed(() => {
   z-index: 1;
 }
 
+.visits-chip {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(27, 67, 50, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 .wikipedia-badge {
   position: absolute;
   top: 12px;
@@ -169,11 +187,83 @@ const imageSource = computed(() => {
   z-index: 1;
 }
 
-.wikipedia-badge .v-btn {
+.wiki-btn {
   background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(8px);
+  color: white !important;
+  transition: all 0.3s ease;
 }
 
-.wikipedia-badge .v-btn:hover {
-  background: rgba(0, 0, 0, 0.7) !important;
+.wiki-btn:hover {
+  background: rgba(27, 67, 50, 0.9) !important;
+  transform: scale(1.1);
+}
+
+.card-content {
+  padding: 16px 18px 18px;
+}
+
+.bird-name {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+  line-height: 1.3;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.bird-species {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  font-style: italic;
+  opacity: 0.6;
+  margin-bottom: 14px;
+}
+
+.bird-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.tag--secondary {
+  background: rgba(92, 64, 51, 0.1);
+  color: #5C4033;
+}
+
+.v-theme--dark .tag--secondary {
+  background: rgba(155, 123, 107, 0.15);
+  color: #B89B8B;
+}
+
+.tag--male {
+  background: rgba(61, 90, 128, 0.12);
+  color: #3D5A80;
+}
+
+.v-theme--dark .tag--male {
+  background: rgba(78, 168, 222, 0.15);
+  color: #4EA8DE;
+}
+
+.tag--female {
+  background: rgba(232, 93, 4, 0.1);
+  color: #E85D04;
+}
+
+.v-theme--dark .tag--female {
+  background: rgba(244, 140, 6, 0.15);
+  color: #F48C06;
 }
 </style>
