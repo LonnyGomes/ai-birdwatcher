@@ -31,6 +31,27 @@ export class BirdsController {
   }
 
   /**
+   * Convert absolute frame path to relative path for API response
+   */
+  private normalizeFramePath(framePath: string): string {
+    const framesIndex = framePath.indexOf('frames/');
+    if (framesIndex !== -1) {
+      return framePath.substring(framesIndex + 'frames/'.length);
+    }
+    return framePath;
+  }
+
+  /**
+   * Normalize sighting data for API response
+   */
+  private normalizeSighting(sighting: any): any {
+    return {
+      ...sighting,
+      frame_path: this.normalizeFramePath(sighting.frame_path),
+    };
+  }
+
+  /**
    * List all bird profiles
    */
   async list(request: FastifyRequest<{ Querystring: ListQuerystring }>, reply: FastifyReply) {
@@ -102,7 +123,7 @@ export class BirdsController {
 
     return reply.send({
       bird,
-      sightings,
+      sightings: sightings.map((s) => this.normalizeSighting(s)),
       total_visits: bird.total_visits,
     });
   }

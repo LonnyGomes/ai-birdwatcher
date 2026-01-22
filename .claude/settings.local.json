@@ -1,5 +1,31 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(timeout 10 npm run dev:*)",
+      "Bash(npm run build)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:backend:*)",
+      "Bash(curl:*)",
+      "Bash(sqlite3:*)",
+      "Bash(npm run dev:frontend:*)",
+      "Bash(cd:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)",
+      "Skill(frontend-testing)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_close"
+    ],
     "requireApproval": false
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
   }
 }
