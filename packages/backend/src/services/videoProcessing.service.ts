@@ -87,7 +87,10 @@ export class VideoProcessingService {
       // Get video metadata
       const metadata = await frameExtractorService.getVideoMetadata(video.filepath);
 
-      logger.info(`Video metadata: ${metadata.duration}s, ${metadata.width}x${metadata.height}`);
+      logger.info(`Video metadata: ${metadata.duration}s, ${metadata.width}x${metadata.height}`, {
+        recordedAt: metadata.recordedAt?.toISOString(),
+        recordedAtSource: metadata.recordedAtSource,
+      });
 
       // Check if we should use motion detection
       const useMotionDetection = await motionDetectionService.shouldUseMotionDetection(
@@ -145,10 +148,12 @@ export class VideoProcessingService {
 
       logger.info(`Extracted ${frames.length} frames from video ${video.id}`);
 
-      // Update video with frame count and duration
+      // Update video with frame count, duration, and recording date
       this.videosRepo.update(video.id, {
         frame_count: frames.length,
         duration_seconds: Math.floor(metadata.duration),
+        recorded_at: metadata.recordedAt?.toISOString() ?? null,
+        recorded_at_source: metadata.recordedAtSource,
       });
 
       // Create bird identification job

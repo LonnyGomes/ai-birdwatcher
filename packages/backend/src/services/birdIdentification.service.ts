@@ -1,9 +1,10 @@
 import { openaiService } from './openai.service.js';
 import { SightingsRepository } from '../repositories/sightings.repository.js';
+import { VideosRepository } from '../repositories/videos.repository.js';
 import { ProcessingMetricsRepository } from '../repositories/processingMetrics.repository.js';
 import { createLogger } from '../utils/logger.js';
 import { assessImageQuality, calculateImageHash, hammingDistance } from '../utils/imageUtils.js';
-import type { CreateSightingInput } from '@ai-birdwatcher/shared';
+import type { CreateSightingInput, Video } from '@ai-birdwatcher/shared';
 
 const logger = createLogger('BirdIdentificationService');
 
@@ -20,11 +21,32 @@ interface FrameFilterState {
 
 export class BirdIdentificationService {
   private sightingsRepo: SightingsRepository;
+  private videosRepo: VideosRepository;
   private metricsRepo: ProcessingMetricsRepository;
 
   constructor() {
     this.sightingsRepo = new SightingsRepository();
+    this.videosRepo = new VideosRepository();
     this.metricsRepo = new ProcessingMetricsRepository();
+  }
+
+  /**
+   * Calculate when a sighting actually occurred
+   * Formula: video.recorded_at + timestamp_in_video
+   */
+  private calculateDetectedAt(video: Video, timestampInVideo: number): string {
+    if (!video.recorded_at) {
+      logger.warn(`Video ${video.id} has no recorded_at, using current time`, {
+        videoId: video.id,
+        filename: video.filename,
+      });
+      return new Date().toISOString();
+    }
+
+    const recordedAt = new Date(video.recorded_at);
+    const detectedAt = new Date(recordedAt.getTime() + timestampInVideo * 1000);
+
+    return detectedAt.toISOString();
   }
 
   /**
@@ -39,6 +61,13 @@ export class BirdIdentificationService {
     logger.info(`Identifying birds in frame ${frameNumber} from video ${videoId}`);
 
     try {
+      // Get video to access recorded_at
+      const video = this.videosRepo.findById(videoId);
+
+      if (!video) {
+        throw new Error(`Video ${videoId} not found`);
+      }
+
       // Call OpenAI to identify birds
       const identification = await openaiService.identifyBirds(framePath);
 
@@ -49,6 +78,9 @@ export class BirdIdentificationService {
 
       // Assess image quality for the frame
       const imageQuality = await assessImageQuality(framePath);
+
+      // Calculate actual detection time
+      const detectedAt = this.calculateDetectedAt(video, timestamp);
 
       // Create sighting records for each bird detected
       const results: IdentificationResult[] = [];
@@ -68,6 +100,7 @@ export class BirdIdentificationService {
             image_quality: bird.image_quality,
             assessed_quality: imageQuality,
           }),
+          detected_at: detectedAt,
         };
 
         const sighting = this.sightingsRepo.create(sightingInput);
@@ -79,7 +112,7 @@ export class BirdIdentificationService {
           birdsDetected: identification.birds_detected,
         });
 
-        logger.info(`Created sighting ${sighting.id} for ${bird.species} (confidence: ${bird.confidence}%)`);
+        logger.info(`Created sighting ${sighting.id} for ${bird.species} at ${detectedAt} (confidence: ${bird.confidence}%)`);
       }
 
       return results;

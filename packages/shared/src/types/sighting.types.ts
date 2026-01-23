@@ -28,6 +28,7 @@ export interface CreateSightingInput {
   ai_analysis?: string;
   is_matched?: boolean;
   match_confidence?: number;
+  detected_at: string;  // Required: actual detection time (video.recorded_at + timestamp_in_video)
 }
 
 export interface UpdateSightingInput {

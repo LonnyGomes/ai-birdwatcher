@@ -3,12 +3,14 @@ import type Database from 'better-sqlite3';
 import * as migration001 from './001_initial_schema.js';
 import * as migration002 from './002_processing_metrics.js';
 import * as migration003 from './003_species_info.js';
+import * as migration004 from './004_video_recording_dates.js';
+import * as migration005 from './005_recalculate_dates.js';
 
 interface Migration {
   id: number;
   name: string;
-  up: (db: Database.Database) => void;
-  down: (db: Database.Database) => void;
+  up: (db: Database.Database) => void | Promise<void>;
+  down: (db: Database.Database) => void | Promise<void>;
 }
 
 // Registry of all migrations
@@ -30,6 +32,18 @@ const migrations: Migration[] = [
     name: '003_species_info',
     up: migration003.up,
     down: migration003.down,
+  },
+  {
+    id: 4,
+    name: '004_video_recording_dates',
+    up: migration004.up,
+    down: migration004.down,
+  },
+  {
+    id: 5,
+    name: '005_recalculate_dates',
+    up: migration005.up,
+    down: migration005.down,
   },
 ];
 
@@ -64,8 +78,9 @@ const markMigrationExecuted = (db: Database.Database, migration: Migration): voi
 
 /**
  * Run all pending migrations
+ * Supports both sync and async migrations
  */
-export const runMigrations = (): void => {
+export const runMigrations = async (): Promise<void> => {
   const db = getDatabase();
 
   createMigrationsTable(db);
@@ -80,7 +95,7 @@ export const runMigrations = (): void => {
       console.log(`  Running migration: ${migration.name}`);
 
       try {
-        migration.up(db);
+        await migration.up(db);
         markMigrationExecuted(db, migration);
         migrationCount++;
       } catch (error) {
@@ -99,8 +114,9 @@ export const runMigrations = (): void => {
 
 /**
  * Rollback last migration
+ * Supports both sync and async migrations
  */
-export const rollbackMigration = (): void => {
+export const rollbackMigration = async (): Promise<void> => {
   const db = getDatabase();
 
   const lastMigration = db.prepare(
@@ -121,7 +137,7 @@ export const rollbackMigration = (): void => {
   console.log(`Rolling back migration: ${migration.name}`);
 
   try {
-    migration.down(db);
+    await migration.down(db);
     db.prepare('DELETE FROM migrations WHERE id = ?').run(migration.id);
     console.log(`✓ Rolled back migration: ${migration.name}`);
   } catch (error) {
@@ -132,12 +148,14 @@ export const rollbackMigration = (): void => {
 
 // Run migrations if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  try {
-    initializeDatabase();
-    runMigrations();
-    process.exit(0);
-  } catch (error) {
-    console.error('Migration failed:', error);
-    process.exit(1);
-  }
+  (async () => {
+    try {
+      initializeDatabase();
+      await runMigrations();
+      process.exit(0);
+    } catch (error) {
+      console.error('Migration failed:', error);
+      process.exit(1);
+    }
+  })();
 }

@@ -283,11 +283,12 @@ export class SightingsRepository {
 
   /**
    * Get hourly activity (for statistics)
+   * Converts to local timezone before extracting hour
    */
   getHourlyActivity(): { hour: number; count: number }[] {
     const stmt = this.db.prepare(`
       SELECT
-        CAST(strftime('%H', detected_at) AS INTEGER) as hour,
+        CAST(strftime('%H', datetime(detected_at, 'localtime')) AS INTEGER) as hour,
         COUNT(*) as count
       FROM sightings
       GROUP BY hour

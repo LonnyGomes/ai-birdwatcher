@@ -1,5 +1,6 @@
 export type VideoSource = 'upload' | 'camera';
 export type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type RecordedAtSource = 'metadata' | 'file_ctime' | 'filename' | 'fallback';
 
 export interface Video {
   id: number;
@@ -12,6 +13,8 @@ export interface Video {
   error_message: string | null;
   created_at: string;
   processed_at: string | null;
+  recorded_at: string | null;
+  recorded_at_source: RecordedAtSource | null;
 }
 
 export interface CreateVideoInput {
@@ -20,6 +23,8 @@ export interface CreateVideoInput {
   source: VideoSource;
   duration_seconds?: number;
   frame_count?: number;
+  recorded_at?: string;
+  recorded_at_source?: RecordedAtSource;
 }
 
 export interface UpdateVideoInput {
@@ -28,4 +33,6 @@ export interface UpdateVideoInput {
   frame_count?: number;
   error_message?: string;
   processed_at?: string;
+  recorded_at?: string;
+  recorded_at_source?: RecordedAtSource;
 }

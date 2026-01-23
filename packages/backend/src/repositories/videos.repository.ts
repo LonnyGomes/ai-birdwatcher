@@ -14,8 +14,11 @@ export class VideosRepository {
    */
   create(input: CreateVideoInput): Video {
     const stmt = this.db.prepare(`
-      INSERT INTO videos (filename, filepath, source, duration_seconds, frame_count)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO videos (
+        filename, filepath, source, duration_seconds, frame_count,
+        recorded_at, recorded_at_source
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -23,7 +26,9 @@ export class VideosRepository {
       input.filepath,
       input.source,
       input.duration_seconds ?? null,
-      input.frame_count ?? null
+      input.frame_count ?? null,
+      input.recorded_at ?? null,
+      input.recorded_at_source ?? null
     );
 
     return this.findById(result.lastInsertRowid as number)!;
@@ -103,6 +108,14 @@ export class VideosRepository {
     if (input.processed_at !== undefined) {
       updates.push('processed_at = ?');
       params.push(input.processed_at);
+    }
+    if (input.recorded_at !== undefined) {
+      updates.push('recorded_at = ?');
+      params.push(input.recorded_at);
+    }
+    if (input.recorded_at_source !== undefined) {
+      updates.push('recorded_at_source = ?');
+      params.push(input.recorded_at_source);
     }
 
     if (updates.length === 0) {
