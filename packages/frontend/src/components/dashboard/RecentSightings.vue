@@ -41,7 +41,10 @@
             </div>
 
             <div class="sighting-info">
-              <div class="sighting-species">{{ sighting.species }}</div>
+              <div class="sighting-species">
+                <span class="species-common-name">{{ sighting.species_common_name || sighting.species }}</span>
+                <span v-if="sighting.species_common_name" class="species-latin-name">{{ sighting.species }}</span>
+              </div>
               <div class="sighting-time">
                 <v-icon size="12" class="mr-1">mdi-clock-outline</v-icon>
                 {{ formatRelativeTime(sighting.detected_at) }}
@@ -234,9 +237,24 @@ function navigateToSighting(id: number) {
 
 .sighting-species {
   font-family: 'Poppins', sans-serif;
-  font-weight: 600;
   font-size: 0.9rem;
   margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.species-common-name {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.species-latin-name {
+  font-style: italic;
+  font-size: 0.75rem;
+  opacity: 0.6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

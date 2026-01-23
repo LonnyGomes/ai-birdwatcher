@@ -25,10 +25,16 @@
 
           <v-avatar size="48" class="visitor-avatar">
             <v-img
-              v-if="bird.representative_image_path"
-              :src="`/api/files/${bird.representative_image_path}`"
+              v-if="bird.species_wikipedia_image"
+              :src="bird.species_wikipedia_image"
               cover
-            />
+            >
+              <template #placeholder>
+                <div class="image-placeholder">
+                  <v-icon color="primary" size="24">mdi-bird</v-icon>
+                </div>
+              </template>
+            </v-img>
             <v-icon v-else color="primary" size="24">mdi-bird</v-icon>
           </v-avatar>
 
@@ -166,6 +172,19 @@ function navigateToBird(id: number) {
 
 .v-theme--dark .visitor-avatar {
   border-color: rgba(116, 198, 157, 0.15);
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(27, 67, 50, 0.1) 0%, rgba(64, 145, 108, 0.1) 100%);
+}
+
+.v-theme--dark .image-placeholder {
+  background: linear-gradient(135deg, rgba(64, 145, 108, 0.15) 0%, rgba(116, 198, 157, 0.15) 100%);
 }
 
 .visitor-info {

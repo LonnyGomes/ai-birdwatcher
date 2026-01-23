@@ -1,6 +1,7 @@
 import { VideosRepository } from '../../repositories/videos.repository.js';
 import { BirdsRepository } from '../../repositories/birds.repository.js';
 import { SightingsRepository } from '../../repositories/sightings.repository.js';
+import { SpeciesRepository } from '../../repositories/species.repository.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
 interface TimelineQuerystring {
@@ -13,11 +14,24 @@ export class StatisticsController {
   private videosRepo: VideosRepository;
   private birdsRepo: BirdsRepository;
   private sightingsRepo: SightingsRepository;
+  private speciesRepo: SpeciesRepository;
 
   constructor() {
     this.videosRepo = new VideosRepository();
     this.birdsRepo = new BirdsRepository();
     this.sightingsRepo = new SightingsRepository();
+    this.speciesRepo = new SpeciesRepository();
+  }
+
+  private normalizeFramePath(framePath: string | null): string | null {
+    if (!framePath) return null;
+    // Extract the relative path from the absolute path
+    // Example: /Users/.../data/frames/7/frame_0001.jpg -> 7/frame_0001.jpg
+    const framesIndex = framePath.indexOf('frames/');
+    if (framesIndex !== -1) {
+      return framePath.substring(framesIndex + 'frames/'.length);
+    }
+    return framePath;
   }
 
   /**
@@ -40,6 +54,33 @@ export class StatisticsController {
     const allBirds = this.birdsRepo.findAll({ limit: 5 });
     const topVisitors = allBirds.sort((a, b) => b.total_visits - a.total_visits).slice(0, 5);
 
+    // Enrich with species info
+    const sightingSpecies = [...new Set(recentSightings.map(s => s.species))];
+    const visitorSpecies = [...new Set(topVisitors.map(b => b.species))];
+    const allSpecies = [...new Set([...sightingSpecies, ...visitorSpecies])];
+    const speciesInfoMap = this.speciesRepo.findBySpeciesList(allSpecies);
+
+    // Add species info to recent sightings
+    const enrichedRecentSightings = recentSightings.map(sighting => {
+      const speciesInfo = speciesInfoMap.get(sighting.species);
+      return {
+        ...sighting,
+        frame_path: this.normalizeFramePath(sighting.frame_path),
+        species_common_name: speciesInfo?.common_name || sighting.bird_common_name || null,
+        species_wikipedia_image: speciesInfo?.wikipedia_image_url || null,
+      };
+    });
+
+    // Add species info to top visitors
+    const enrichedTopVisitors = topVisitors.map(bird => {
+      const speciesInfo = speciesInfoMap.get(bird.species);
+      return {
+        ...bird,
+        species_common_name: speciesInfo?.common_name || bird.common_name || null,
+        species_wikipedia_image: speciesInfo?.wikipedia_image_url || null,
+      };
+    });
+
     return reply.send({
       videos: {
         total: totalVideos,
@@ -52,8 +93,8 @@ export class StatisticsController {
         unique_species: uniqueSpecies,
         total_sightings: totalSightings,
       },
-      recent_sightings: recentSightings,
-      top_visitors: topVisitors,
+      recent_sightings: enrichedRecentSightings,
+      top_visitors: enrichedTopVisitors,
     });
   }
 
