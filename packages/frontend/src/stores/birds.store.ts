@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import birdsService from '@/services/birds.service';
 
 export const useBirdsStore = defineStore('birds', () => {
@@ -8,6 +8,58 @@ export const useBirdsStore = defineStore('birds', () => {
   const birdHistory = ref<any[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+
+  // Group birds by species (one entry per species)
+  const birdsBySpecies = computed(() => {
+    const grouped = new Map<string, {
+      species: string;
+      common_name: string;
+      total_visits: number;
+      first_seen: string;
+      last_seen: string;
+      individual_count: number;
+      representative_image_path: string | null;
+      profiles: any[];
+    }>();
+
+    birds.value.forEach((bird) => {
+      const existing = grouped.get(bird.species);
+
+      if (existing) {
+        // Update aggregated data
+        existing.total_visits += bird.total_visits || 0;
+        existing.individual_count += 1;
+        existing.profiles.push(bird);
+
+        // Use the most recent last_seen
+        if (new Date(bird.last_seen) > new Date(existing.last_seen)) {
+          existing.last_seen = bird.last_seen;
+          existing.representative_image_path = bird.representative_image_path;
+        }
+
+        // Use the earliest first_seen
+        if (new Date(bird.first_seen) < new Date(existing.first_seen)) {
+          existing.first_seen = bird.first_seen;
+        }
+      } else {
+        // Create new species entry
+        grouped.set(bird.species, {
+          species: bird.species,
+          common_name: bird.common_name,
+          total_visits: bird.total_visits || 0,
+          first_seen: bird.first_seen,
+          last_seen: bird.last_seen,
+          individual_count: 1,
+          representative_image_path: bird.representative_image_path,
+          profiles: [bird],
+        });
+      }
+    });
+
+    return Array.from(grouped.values()).sort((a, b) =>
+      new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime()
+    );
+  });
 
   async function fetchBirds(params?: any) {
     loading.value = true;
@@ -55,6 +107,7 @@ export const useBirdsStore = defineStore('birds', () => {
 
   return {
     birds,
+    birdsBySpecies,
     currentBird,
     birdHistory,
     loading,

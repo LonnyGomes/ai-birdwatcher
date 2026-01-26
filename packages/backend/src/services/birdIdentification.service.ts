@@ -71,8 +71,11 @@ export class BirdIdentificationService {
       // Call OpenAI to identify birds
       const identification = await openaiService.identifyBirds(framePath);
 
-      if (identification.birds_detected === 0) {
-        logger.debug(`No birds detected in frame ${frameNumber}`);
+      if (!identification.birds || identification.birds.length === 0) {
+        logger.warn(`detectBirds found birds but identifyBirds returned none for frame ${frameNumber}`, {
+          videoId,
+          framePath,
+        });
         return [];
       }
 
