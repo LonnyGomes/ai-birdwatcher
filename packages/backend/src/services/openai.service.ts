@@ -138,14 +138,16 @@ export class OpenAIService {
   }
 
   /**
-   * Identify birds in an image
+   * Identify birds in an image with optional detail level override
    */
-  async identifyBirds(imagePath: string): Promise<BirdIdentification> {
-    logger.info(`Identifying birds in image: ${imagePath}`);
+  async identifyBirds(imagePath: string, detailOverride?: 'low' | 'high' | 'auto'): Promise<BirdIdentification> {
+    const detail = detailOverride ?? openaiConfig.vision.identify.detail;
+    logger.info(`Identifying birds in image: ${imagePath} (detail: ${detail})`);
 
-    // Check cache
+    // Check cache (include detail in cache key)
+    const cacheKeySuffix = detailOverride ? `-${detailOverride}` : '';
     if (openaiConfig.caching.enabled) {
-      const cacheKey = await this.getCacheKey(imagePath, 'identify');
+      const cacheKey = await this.getCacheKey(imagePath, `identify${cacheKeySuffix}`);
       const cached = this.cache.get(cacheKey);
 
       if (cached) {
@@ -174,7 +176,7 @@ export class OpenAIService {
                     type: 'image_url',
                     image_url: {
                       url: `data:image/jpeg;base64,${base64Image}`,
-                      detail: openaiConfig.vision.identify.detail,
+                      detail,
                     },
                   },
                 ],
@@ -209,7 +211,7 @@ export class OpenAIService {
 
     // Cache result
     if (openaiConfig.caching.enabled) {
-      const cacheKey = await this.getCacheKey(imagePath, 'identify');
+      const cacheKey = await this.getCacheKey(imagePath, `identify${cacheKeySuffix}`);
       this.cache.set(cacheKey, result);
 
       // Clear cache after TTL
@@ -218,8 +220,34 @@ export class OpenAIService {
       }, openaiConfig.caching.ttl);
     }
 
-    logger.info(`Identified ${result.birds_detected} bird(s)`);
+    logger.info(`Identified ${result.birds_detected} bird(s) (detail: ${detail})`);
     return result;
+  }
+
+  /**
+   * Identify birds with automatic fallback from high to low detail
+   * When high-detail identification returns no birds, retries with low detail
+   */
+  async identifyBirdsWithFallback(imagePath: string): Promise<BirdIdentification> {
+    // First try with high detail (default)
+    const highDetailResult = await this.identifyBirds(imagePath);
+
+    // If high detail found birds, return the result
+    if (highDetailResult.birds && highDetailResult.birds.length > 0) {
+      return highDetailResult;
+    }
+
+    // High detail found no birds, retry with low detail
+    logger.info(`High-detail identification found no birds, retrying with low detail: ${imagePath}`);
+    const lowDetailResult = await this.identifyBirds(imagePath, 'low');
+
+    if (lowDetailResult.birds && lowDetailResult.birds.length > 0) {
+      logger.info(`Low-detail fallback succeeded: found ${lowDetailResult.birds.length} bird(s)`);
+    } else {
+      logger.warn(`Both high and low detail identification found no birds: ${imagePath}`);
+    }
+
+    return lowDetailResult;
   }
 
   /**

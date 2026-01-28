@@ -68,8 +68,8 @@ export class BirdIdentificationService {
         throw new Error(`Video ${videoId} not found`);
       }
 
-      // Call OpenAI to identify birds
-      const identification = await openaiService.identifyBirds(framePath);
+      // Call OpenAI to identify birds (with fallback from high to low detail)
+      const identification = await openaiService.identifyBirdsWithFallback(framePath);
 
       if (!identification.birds || identification.birds.length === 0) {
         logger.warn(`detectBirds found birds but identifyBirds returned none for frame ${frameNumber}`, {

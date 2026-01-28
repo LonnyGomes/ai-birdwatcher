@@ -55,28 +55,31 @@ Respond in JSON format:
 
 If no birds are present, respond with: {"birds_detected": 0, "confidence": 0}`,
 
-  identify: `Analyze this bird feeder image. If birds are present, provide detailed analysis:
+  identify: `Examine this image for birds. Identify any birds visible, even if partially obscured or image quality is not optimal.
 
-1. Identify species (scientific + common name)
+For each bird detected:
+1. Identify species (scientific + common name). If unsure, provide best guess with lower confidence.
 2. Determine gender if possible (male/female/unknown)
-3. Describe unique identifying features (markings, colors, size, patterns)
+3. Describe visible identifying features (markings, colors, size, patterns)
 4. Rate image quality for identification purposes (1-10)
-5. Provide confidence score (0-100)
+5. Provide confidence score (0-100) - use lower scores if identification is uncertain
 
-Respond in JSON format with this structure:
+IMPORTANT: If you can see any bird or bird-like shape, include it in the results even with low confidence. Err on the side of detection over missing birds.
+
+Respond in JSON format:
 {
   "birds_detected": number,
   "birds": [{
     "species": "Scientific Name",
     "common_name": "Common Name",
     "gender": "male" | "female" | "unknown",
-    "features": "Detailed description of unique identifying features",
+    "features": "Description of visible identifying features",
     "image_quality": number (1-10),
     "confidence": number (0-100)
   }]
 }
 
-If no birds are present, respond with: {"birds_detected": 0, "birds": []}`,
+Only respond with {"birds_detected": 0, "birds": []} if you are certain no birds are visible.`,
 
   compare: `Compare these two birds of the same species and determine if they are the same individual.
 

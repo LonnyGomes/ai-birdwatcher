@@ -22,9 +22,9 @@ export class SightingsRepository {
       INSERT INTO sightings (
         video_id, bird_profile_id, frame_number, timestamp_in_video,
         species, gender, confidence_score, frame_path, ai_analysis,
-        is_matched, match_confidence
+        is_matched, match_confidence, detected_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -38,7 +38,8 @@ export class SightingsRepository {
       input.frame_path,
       input.ai_analysis ?? null,
       input.is_matched ? 1 : 0,
-      input.match_confidence ?? null
+      input.match_confidence ?? null,
+      input.detected_at ?? new Date().toISOString()
     );
 
     return this.findById(result.lastInsertRowid as number)!;
