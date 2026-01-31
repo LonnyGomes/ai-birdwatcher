@@ -1,0 +1,14 @@
+node_modules
+packages/*/node_modules
+dist
+packages/*/dist
+.env
+.git
+.gitignore
+*.md
+data
+packages/backend/data
+packages/backend/logs
+watch-folder
+.claude
+.vscode
