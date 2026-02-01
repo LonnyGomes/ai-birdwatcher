@@ -51,6 +51,14 @@ export class VideosRepository {
   }
 
   /**
+   * Find video by filename
+   */
+  findByFilename(filename: string): Video | null {
+    const stmt = this.db.prepare('SELECT * FROM videos WHERE filename = ?');
+    return stmt.get(filename) as Video | null;
+  }
+
+  /**
    * Find all videos with optional filters
    */
   findAll(options?: {

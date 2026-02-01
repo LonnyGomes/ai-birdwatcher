@@ -1,7 +1,7 @@
 import chokidar from 'chokidar';
 import path from 'path';
 import fs from 'fs/promises';
-import { paths } from '../config/environment.js';
+import { env, paths } from '../config/environment.js';
 import { toRelativeUploadPath } from '../utils/pathUtils.js';
 import { VideosRepository } from '../repositories/videos.repository.js';
 import { videoProcessingService } from './videoProcessing.service.js';
@@ -41,13 +41,20 @@ export class FileWatcherService {
 
     logger.info(`Starting file watcher on: ${paths.watchFolder}`);
 
+    // In production (Docker), use polling since inotify/fsevents don't work
+    // reliably over bind-mounted volumes. Also use a longer stability threshold
+    // to ensure large video files are fully written before processing.
+    const isProduction = env.NODE_ENV === 'production';
+
     this.watcher = chokidar.watch(paths.watchFolder, {
       ignored: /(^|[\/\\])\../, // Ignore dotfiles
       persistent: true,
       ignoreInitial: false, // Process existing files on startup
+      usePolling: isProduction,
+      interval: isProduction ? 1000 : undefined,
       awaitWriteFinish: {
-        stabilityThreshold: 2000, // Wait 2s for file to be fully written
-        pollInterval: 100,
+        stabilityThreshold: isProduction ? 10000 : 2000,
+        pollInterval: isProduction ? 1000 : 100,
       },
     });
 
@@ -96,8 +103,11 @@ export class FileWatcherService {
     logger.info(`New video detected: ${path.basename(filePath)}`);
 
     try {
-      // Check if video already exists in database
-      const existing = this.videosRepo.findByFilepath(filePath);
+      const filename = path.basename(filePath);
+
+      // Check if video already exists in database (match by filename since
+      // DB stores relative upload paths, not watch folder paths)
+      const existing = this.videosRepo.findByFilename(filename);
 
       if (existing) {
         logger.info(`Video already exists in database (ID: ${existing.id}), skipping`);
@@ -105,7 +115,6 @@ export class FileWatcherService {
       }
 
       // Copy video to uploads directory
-      const filename = path.basename(filePath);
       const uploadPath = path.join(paths.uploads, filename);
 
       await fs.mkdir(paths.uploads, { recursive: true });
