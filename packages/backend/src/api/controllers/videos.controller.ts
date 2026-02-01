@@ -1,6 +1,7 @@
 import { VideosRepository } from '../../repositories/videos.repository.js';
 import { videoProcessingService } from '../../services/videoProcessing.service.js';
 import { paths } from '../../config/environment.js';
+import { toRelativeUploadPath, toAbsoluteUploadPath } from '../../utils/pathUtils.js';
 import path from 'path';
 import fs from 'fs/promises';
 import { pipeline } from 'stream/promises';
@@ -61,10 +62,10 @@ export class VideosController {
       // Save file
       await pipeline(data.file, fs.createWriteStream(filepath));
 
-      // Create video record
+      // Create video record (store relative path in DB)
       const video = this.videosRepo.create({
         filename,
-        filepath,
+        filepath: toRelativeUploadPath(filepath),
         source: 'upload',
       });
 
@@ -180,9 +181,9 @@ export class VideosController {
       });
     }
 
-    // Delete video file
+    // Delete video file (reconstruct absolute path from relative DB path)
     try {
-      await fs.unlink(video.filepath);
+      await fs.unlink(toAbsoluteUploadPath(video.filepath));
     } catch (error) {
       request.log.warn('Failed to delete video file:', error);
     }

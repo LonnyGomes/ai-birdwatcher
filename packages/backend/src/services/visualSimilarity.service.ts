@@ -4,6 +4,7 @@ import { SightingsRepository } from '../repositories/sightings.repository.js';
 import { env } from '../config/environment.js';
 import { createLogger } from '../utils/logger.js';
 import { calculateImageSimilarity, assessImageQuality } from '../utils/imageUtils.js';
+import { toAbsoluteFramePath } from '../utils/pathUtils.js';
 import type { BirdProfile, Sighting } from '@ai-birdwatcher/shared';
 
 const logger = createLogger('VisualSimilarityService');
@@ -145,8 +146,8 @@ export class VisualSimilarityService {
 
       try {
         const similarity = await calculateImageSimilarity(
-          sightingFramePath,
-          candidate.representative_image_path
+          toAbsoluteFramePath(sightingFramePath),
+          toAbsoluteFramePath(candidate.representative_image_path)
         );
 
         // If perceptual hash shows decent similarity (>40%), include in AI comparison
@@ -172,8 +173,8 @@ export class VisualSimilarityService {
     }
 
     return openaiService.compareBirds(
-      sighting.frame_path,
-      birdProfile.representative_image_path
+      toAbsoluteFramePath(sighting.frame_path),
+      toAbsoluteFramePath(birdProfile.representative_image_path)
     );
   }
 
@@ -185,8 +186,8 @@ export class VisualSimilarityService {
     const count = this.birdsRepo.countBySpecies(sighting.species);
     const identifier = `${sighting.species.toUpperCase().replace(/\s+/g, '_')}_${String(count + 1).padStart(3, '0')}`;
 
-    // Assess image quality
-    const imageQuality = await assessImageQuality(sighting.frame_path);
+    // Assess image quality (needs absolute path for filesystem access)
+    const imageQuality = await assessImageQuality(toAbsoluteFramePath(sighting.frame_path));
 
     // Parse AI analysis for common name
     let commonName = null;
@@ -242,7 +243,7 @@ export class VisualSimilarityService {
     this.birdsRepo.incrementVisits(birdProfileId);
 
     // Potentially add as representative image if quality is high
-    const imageQuality = await assessImageQuality(sighting.frame_path);
+    const imageQuality = await assessImageQuality(toAbsoluteFramePath(sighting.frame_path));
     if (imageQuality >= 7) {
       this.birdsRepo.addRepresentativeImage({
         bird_profile_id: birdProfileId,

@@ -5,6 +5,7 @@ import * as migration002 from './002_processing_metrics.js';
 import * as migration003 from './003_species_info.js';
 import * as migration004 from './004_video_recording_dates.js';
 import * as migration005 from './005_recalculate_dates.js';
+import * as migration006 from './006_relative_paths.js';
 
 interface Migration {
   id: number;
@@ -44,6 +45,12 @@ const migrations: Migration[] = [
     name: '005_recalculate_dates',
     up: migration005.up,
     down: migration005.down,
+  },
+  {
+    id: 6,
+    name: '006_relative_paths',
+    up: migration006.up,
+    down: migration006.down,
   },
 ];
 

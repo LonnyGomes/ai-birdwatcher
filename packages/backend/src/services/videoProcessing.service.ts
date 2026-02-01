@@ -5,6 +5,7 @@ import { visualSimilarityService } from './visualSimilarity.service.js';
 import { motionDetectionService } from './motionDetection.service.js';
 import { jobQueueService } from './jobQueue.service.js';
 import { createLogger } from '../utils/logger.js';
+import { toAbsoluteUploadPath } from '../utils/pathUtils.js';
 import type { ProcessingJob } from '@ai-birdwatcher/shared';
 
 const logger = createLogger('VideoProcessingService');
@@ -84,8 +85,11 @@ export class VideoProcessingService {
     logger.info(`Extracting frames from video ${video.id}: ${video.filename}`);
 
     try {
+      // Reconstruct absolute path for filesystem operations
+      const videoPath = toAbsoluteUploadPath(video.filepath);
+
       // Get video metadata
-      const metadata = await frameExtractorService.getVideoMetadata(video.filepath);
+      const metadata = await frameExtractorService.getVideoMetadata(videoPath);
 
       logger.info(`Video metadata: ${metadata.duration}s, ${metadata.width}x${metadata.height}`, {
         recordedAt: metadata.recordedAt?.toISOString(),
@@ -94,7 +98,7 @@ export class VideoProcessingService {
 
       // Check if we should use motion detection
       const useMotionDetection = await motionDetectionService.shouldUseMotionDetection(
-        video.filepath,
+        videoPath,
         metadata.duration
       );
 
@@ -102,7 +106,7 @@ export class VideoProcessingService {
 
       if (useMotionDetection) {
         // Use motion detection to reduce frame extraction
-        const motionSegments = await motionDetectionService.detectMotionSegments(video.filepath);
+        const motionSegments = await motionDetectionService.detectMotionSegments(videoPath);
 
         const savings = motionDetectionService.estimateCostSavings(
           metadata.duration,
@@ -116,7 +120,7 @@ export class VideoProcessingService {
 
         if (timestamps.length === 0) {
           logger.warn('Motion detection found no segments; falling back to full frame extraction');
-          frames = await frameExtractorService.extractFrames(video.filepath, video.id);
+          frames = await frameExtractorService.extractFrames(videoPath, video.id);
         } else {
           // Extract frames at specific timestamps
           frames = [];
@@ -125,7 +129,7 @@ export class VideoProcessingService {
             const framePath = `${video.id}/frame_${String(i + 1).padStart(4, '0')}.jpg`;
 
             await frameExtractorService.extractFrameAtTimestamp(
-              video.filepath,
+              videoPath,
               timestamp,
               framePath
             );
@@ -143,7 +147,7 @@ export class VideoProcessingService {
         }
       } else {
         // Extract all frames at 1 fps
-        frames = await frameExtractorService.extractFrames(video.filepath, video.id);
+        frames = await frameExtractorService.extractFrames(videoPath, video.id);
       }
 
       logger.info(`Extracted ${frames.length} frames from video ${video.id}`);

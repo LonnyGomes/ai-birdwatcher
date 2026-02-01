@@ -2,6 +2,7 @@ import chokidar from 'chokidar';
 import path from 'path';
 import fs from 'fs/promises';
 import { paths } from '../config/environment.js';
+import { toRelativeUploadPath } from '../utils/pathUtils.js';
 import { VideosRepository } from '../repositories/videos.repository.js';
 import { videoProcessingService } from './videoProcessing.service.js';
 import { createLogger } from '../utils/logger.js';
@@ -112,10 +113,10 @@ export class FileWatcherService {
 
       logger.info(`Copied video to uploads: ${uploadPath}`);
 
-      // Create video record
+      // Create video record (store relative path in DB)
       const video = this.videosRepo.create({
         filename,
-        filepath: uploadPath,
+        filepath: toRelativeUploadPath(uploadPath),
         source: 'camera',
       });
 

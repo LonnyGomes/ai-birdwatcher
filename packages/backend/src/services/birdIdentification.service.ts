@@ -4,6 +4,7 @@ import { VideosRepository } from '../repositories/videos.repository.js';
 import { ProcessingMetricsRepository } from '../repositories/processingMetrics.repository.js';
 import { createLogger } from '../utils/logger.js';
 import { assessImageQuality, calculateImageHash, hammingDistance } from '../utils/imageUtils.js';
+import { toRelativeFramePath } from '../utils/pathUtils.js';
 import type { CreateSightingInput, Video } from '@ai-birdwatcher/shared';
 
 const logger = createLogger('BirdIdentificationService');
@@ -96,7 +97,7 @@ export class BirdIdentificationService {
           species: bird.species,
           gender: bird.gender,
           confidence_score: bird.confidence,
-          frame_path: framePath,
+          frame_path: toRelativeFramePath(framePath),
           ai_analysis: JSON.stringify({
             features: bird.features,
             common_name: bird.common_name,

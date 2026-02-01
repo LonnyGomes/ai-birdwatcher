@@ -1,6 +1,5 @@
 import { SightingsRepository } from '../../repositories/sightings.repository.js';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import path from 'node:path';
 
 interface SightingIdParams {
   id: string;
@@ -21,29 +20,6 @@ export class SightingsController {
 
   constructor() {
     this.sightingsRepo = new SightingsRepository();
-  }
-
-  /**
-   * Convert absolute frame path to relative path for API response
-   */
-  private normalizeFramePath(framePath: string): string {
-    // Extract the relative path from the absolute path
-    // Example: /Users/.../data/frames/7/frame_0001.jpg -> 7/frame_0001.jpg
-    const framesIndex = framePath.indexOf('frames/');
-    if (framesIndex !== -1) {
-      return framePath.substring(framesIndex + 'frames/'.length);
-    }
-    return framePath;
-  }
-
-  /**
-   * Normalize sighting data for API response
-   */
-  private normalizeSighting(sighting: any): any {
-    return {
-      ...sighting,
-      frame_path: this.normalizeFramePath(sighting.frame_path),
-    };
   }
 
   /**
@@ -77,7 +53,7 @@ export class SightingsController {
     });
 
     return reply.send({
-      sightings: sightings.map((s) => this.normalizeSighting(s)),
+      sightings,
       total,
       limit: limit ? parseInt(limit) : 50,
       offset: offset ? parseInt(offset) : 0,
@@ -106,7 +82,7 @@ export class SightingsController {
       });
     }
 
-    return reply.send({ sighting: this.normalizeSighting(sighting) });
+    return reply.send({ sighting });
   }
 
   /**
@@ -125,7 +101,7 @@ export class SightingsController {
     const sightings = this.sightingsRepo.findByVideoId(videoId);
 
     return reply.send({
-      sightings: sightings.map((s) => this.normalizeSighting(s)),
+      sightings,
       total: sightings.length,
     });
   }

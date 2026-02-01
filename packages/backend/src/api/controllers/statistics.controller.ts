@@ -23,17 +23,6 @@ export class StatisticsController {
     this.speciesRepo = new SpeciesRepository();
   }
 
-  private normalizeFramePath(framePath: string | null): string | null {
-    if (!framePath) return null;
-    // Extract the relative path from the absolute path
-    // Example: /Users/.../data/frames/7/frame_0001.jpg -> 7/frame_0001.jpg
-    const framesIndex = framePath.indexOf('frames/');
-    if (framesIndex !== -1) {
-      return framePath.substring(framesIndex + 'frames/'.length);
-    }
-    return framePath;
-  }
-
   /**
    * Get overview statistics
    */
@@ -65,7 +54,7 @@ export class StatisticsController {
       const speciesInfo = speciesInfoMap.get(sighting.species);
       return {
         ...sighting,
-        frame_path: this.normalizeFramePath(sighting.frame_path),
+        frame_path: sighting.frame_path,
         species_common_name: speciesInfo?.common_name || sighting.bird_common_name || null,
         species_wikipedia_image: speciesInfo?.wikipedia_image_url || null,
       };
