@@ -1,11 +1,14 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import sightingsService from "@/services/sightings.service";
-import { SightingAIAnalysis } from "@shared/types/sighting.types";
+import sightingsService, {
+  type SightingWithParsedAnalysis,
+} from "@/services/sightings.service";
+import type { SightingWithBird } from "@shared/types/sighting.types";
 
 export const useSightingsStore = defineStore("sightings", () => {
-  const sightings = ref<any[]>([]);
-  const currentSighting = ref<SightingAIAnalysis | null>(null);
+  const sightings = ref<SightingWithBird[]>([]);
+  const currentSighting = ref<SightingWithParsedAnalysis | null>(null);
+  const total = ref(0);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -13,7 +16,9 @@ export const useSightingsStore = defineStore("sightings", () => {
     loading.value = true;
     error.value = null;
     try {
-      sightings.value = await sightingsService.list(params);
+      const result = await sightingsService.list(params);
+      sightings.value = result.data;
+      total.value = result.total;
     } catch (err: any) {
       error.value = err.response?.data?.message || "Failed to fetch sightings";
     } finally {
@@ -36,6 +41,7 @@ export const useSightingsStore = defineStore("sightings", () => {
   return {
     sightings,
     currentSighting,
+    total,
     loading,
     error,
     fetchSightings,

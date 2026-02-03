@@ -45,6 +45,13 @@ export async function buildServer() {
     decorateReply: false,
   });
 
+  // Serve video files from uploads directory
+  await fastify.register(fastifyStatic, {
+    root: paths.uploads,
+    prefix: '/api/videos/stream/',
+    decorateReply: false,
+  });
+
   // Health check endpoint
   fastify.get('/health', async () => {
     return {
